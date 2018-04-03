@@ -42,7 +42,8 @@ def start_server():
     print('Socket created')
 
     try:
-        ip = "192.168.0.14"
+        ip = ' '
+        # ip = "192.168.0.14"
         # ip = "127.0.0.1"
         soc.bind((ip, 12345))
         print('Socket bind complete')

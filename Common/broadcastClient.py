@@ -12,10 +12,11 @@ soc.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 # soc.connect((ip, 12345))
 
 clients_input = input("What you want to broadcast, my dear client?\n")  
-
+# myIP = socket.gethostbyname(socket.gethostname())
+# print(myIP)
 # soc.send(clients_input.encode("utf8")) # we must encode the string to bytes  
-soc.sendto(clients_input.encode("utf8"), (('192.168.0.255',12345)))
-
+# soc.sendto(clients_input.encode("utf8"), (('192.168.0.255',11111)))
+soc.sendto(clients_input.encode("utf8"), (('<broadcast>',54838)))
 result_bytes, blah = soc.recvfrom(4096) # the number means how the response can be in bytes  
 result_string = result_bytes.decode("utf8") # the return will be in bytes, so decode
 

@@ -3,14 +3,16 @@
 import socket
 # from socket import SOL_SOCKET, SO_TYPE
 # ip = '<broadcast>'
-ip = "192.168.0.21"
+myIP = socket.gethostbyname(socket.gethostname())
+print(myIP)
 # ip = "127.0.0.1"
 
 soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
 # soc.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  
-soc.connect((ip, 12345))
-
 clients_input = input("What you want to send my dear client?\n")  
+soc.connect((myIP, 53078))
+
+
 
 soc.send(clients_input.encode("utf8")) # we must encode the string to bytes  
 result_bytes = soc.recv(4096) # the number means how the response can be in bytes  

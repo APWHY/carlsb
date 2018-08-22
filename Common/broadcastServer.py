@@ -71,7 +71,7 @@ def start_server():
         print('Socket bind complete')
     except socket.error as msg:
         import sys
-        print('Bind failed. Error : ' + str(sys.exc_info()))
+        print('Bind failed. Error : ' + str(sys.exc_info()) + " msg: " + msg)
         sys.exit()
 
     #Start listening on socket

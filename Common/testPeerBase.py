@@ -52,7 +52,7 @@ def testSendsTCP(first):
     Thread(target=first.sendTCP, args=(testString,ip,soc.getsockname()[1]), daemon=True).start()
     # normally you would handle this in a seperate thread but since we're only testing one conn it's fine
     conn, addr = soc.accept()
-    ip, port = str(addr[0]), str(addr[1])
+    ip, _ = str(addr[0]), str(addr[1])
     res = conn.recv(4096)
     conn.sendall("ack".encode("utf8"))
     conn.close()

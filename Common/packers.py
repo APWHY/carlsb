@@ -1,4 +1,4 @@
-import commonConstants,cryptostuff
+from common import cryptostuff,consts
 import struct
 
 # This file contains all the message classes used in the project
@@ -16,9 +16,9 @@ import struct
     # 5. The public key of the sender (assumed to be a cryptography.hazmat.backends.openssl.rsa.RSAPublicKey type)
 class IntroMsg:
 
-    fmt = struct.Struct(commonConstants.MSG_INTRO_FMT) # the specific format of how we plan on serialising our struct
+    fmt = struct.Struct(consts.MSG_INTRO_FMT) # the specific format of how we plan on serialising our struct
     
-    msgType = commonConstants.MSG_INTRO
+    msgType = consts.MSG_INTRO
     def __init__(self, nodeType, ip, port,key):
         self.nodeType = nodeType
         self.IP = ip
@@ -53,7 +53,7 @@ class IntroMsg:
             retVal.key = cryptostuff.bytesToKey(retVal.key)
             return retVal
         else:
-            raise TypeError
+            return None
 
 
 
@@ -66,9 +66,9 @@ class IntroMsg:
         # 4. The public key of the sender (assumed to be a cryptography.hazmat.backends.openssl.rsa.RSAPublicKey type)
 class TransMsg:
 
-    fmt = struct.Struct(commonConstants.MSG_TRANS_FMT) # the specific format of how we plan on serialising our struct
+    fmt = struct.Struct(consts.MSG_TRANS_FMT) # the specific format of how we plan on serialising our struct
     
-    msgType = commonConstants.MSG_TRANS
+    msgType = consts.MSG_TRANS
     def __init__(self, nodeType, signature,key):
         self.nodeType = nodeType
         self.signature = signature
@@ -98,29 +98,31 @@ class TransMsg:
             raw = TransMsg.fmt.unpack(data)
             retVal = TransMsg(*raw[1:])
             retVal.key = cryptostuff.bytesToKey(retVal.key)
-            return retVal
+            return retVal 
         else:
-            raise TypeError
+            return None
 
 
 # AckMsg -- to acknowledge when a message is recieved
     # always sent via TCP
-    # contains 5 things:
+    # contains 6 things:
         # 1. Message type (MSG_ACK)
         # 2. Node type (whether the sender is a CH or CM as an int)
         # 3. IP of sender
         # 4. Port of sender
         # 5. ACK type (type of message that has been acknowledged -- cannot be MSG_ACK)
+        # 6. Public Key of the sender
 class AckMsg:
 
-    fmt = struct.Struct(commonConstants.MSG_ACK_FMT) # the specific format of how we plan on serialising our struct
+    fmt = struct.Struct(consts.MSG_ACK_FMT) # the specific format of how we plan on serialising our struct
     
-    msgType = commonConstants.MSG_ACK
-    def __init__(self, nodeType, ip,port,ackType):
+    msgType = consts.MSG_ACK
+    def __init__(self, nodeType, ip,port,ackType,key):
         self.nodeType = nodeType
         self.IP = ip
         self.port = port
         self.ackType = ackType
+        self.key = key # this should be a public key
 
     # genMsg -- Takes an AckMsg object and seralises it into bytes for sending over a network
     def genMsg(self):
@@ -129,7 +131,8 @@ class AckMsg:
             self.nodeType,
             bytes(self.IP,'utf-8'),
             self.port,
-            self.ackType
+            self.ackType,
+            cryptostuff.keyToBytes(self.key)
         )
         return self.fmt.pack(*values) # splat
 
@@ -146,49 +149,13 @@ class AckMsg:
             raw = AckMsg.fmt.unpack(data)
             retVal = AckMsg(*raw[1:])
             retVal.IP = retVal.IP.decode('utf-8').replace("\x00",'') # remove null chars at the end of the string
+            retVal.key = cryptostuff.bytesToKey(retVal.key)
             return retVal
         else:
-            raise TypeError
+            return None
 
 
-
-
-
-
-# testing stuff with examples of how to use the packers as well
-
-if __name__ == "__main__":
-    import socket
-    import cryptostuff
-    ip = socket.gethostbyname(socket.gethostname())
-    privateKey = cryptostuff.newPrivateKey()
-    publicKey = privateKey.public_key()
-    message = b"SIGNATURE MESSAGE yoyoyooyoyo jjsjsjsjjs dkdkdkdk nenenen"
-    ourSig = cryptostuff.signMsg(privateKey,message)
-    test = IntroMsg(commonConstants.TYPE_CM,ip,24232,publicKey)
-    print(test.IP,test.port,test.nodeType,test.msgType)
-    print(cryptostuff.verifyMsg(publicKey,message,ourSig))
-
-    gen = test.genMsg()
-    ungen = IntroMsg.ungenMsg(gen)
-    print(ungen.IP,ungen.port,ungen.nodeType,ungen.msgType)
-    print(cryptostuff.verifyMsg(ungen.key,message,ourSig))
-
-
-    test2 = TransMsg(commonConstants.TYPE_CM,ourSig,publicKey)
-    gen = test2.genMsg()
-    ungen = TransMsg.ungenMsg(gen)
-    print(test2.nodeType,test2.signature)
-    print(cryptostuff.verifyMsg(test2.key,message,test2.signature))
-    print(ungen.nodeType,ungen.signature)
-    print(cryptostuff.verifyMsg(ungen.key,message,ungen.signature))
-
-    test3 = AckMsg(commonConstants.TYPE_CM,ip,23423,commonConstants.MSG_INTRO)
-    gen = test3.genMsg()
-    ungen = AckMsg.ungenMsg(gen)
-    print(test3.nodeType,test3.IP,test3.port,test3.ackType)
-    print(ungen.nodeType,ungen.IP,ungen.port,ungen.ackType)
-
+# TODO MSG_KUI
 
 
 

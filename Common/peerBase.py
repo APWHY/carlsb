@@ -8,16 +8,21 @@ import socket
 import socketserver
 from threading import Thread
 import select
-import commonConstants
+from common import consts
 import time
 
 
-class CommonNode():
-	BSERVPORT = commonConstants.BROADCAST_PORT 
+
+
+
+
+class commonNode():
+	BSERVPORT = consts.BROADCAST_PORT 
 						
 	def __init__(self, broadcastHandler, streamHandler):
 		# we get our own ip
 		self.IP = socket.gethostbyname(socket.gethostname())
+		print(broadcastHandler,streamHandler)
 		# set up our streaming server
 		self.streamServer = socketserver.TCPServer((self.IP,0), streamHandler )
 		# now we can get the port our streaming server is bound to
@@ -32,25 +37,20 @@ class CommonNode():
 	
 
 	def sendTCP(self, msg, ip, port):
-		# we always expect some sort of reply from a streamed message
-		# could probably set up some sort of timeout and handle the error in the caller
-		# since this blocks if nobody is listening on the other end
-		# but that should go on the todo list
-		# TODO
+
 		soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
 		soc.connect((ip,port))
-		soc.send(msg.encode("utf8")) # we must encode the string to bytes  
-		result_bytes = soc.recv(4096)   
-		result_string = result_bytes.decode("utf8") # the return will be in bytes, so decode
-		return result_string 
-
+		soc.send(msg) # we must encode the string to bytes  
 	def broadcast(self,msg):
 		# we do not expect to receive a result from a broadcast
 		# when a node receives a broadcast (which should contain an address to reply to)
 		# the reply is made to that address, not on the broadcast address
+
+		print(str(len(msg)) + "is message length")
+
 		soc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  
 		soc.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  
-		soc.sendto(msg.encode("utf8"), (('<broadcast>',commonConstants.BROADCAST_PORT)))
+		soc.sendto(msg, (('<broadcast>',consts.BROADCAST_PORT)))
  
 
 

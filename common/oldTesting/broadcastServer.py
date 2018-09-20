@@ -67,7 +67,7 @@ def start_server():
         ip = '0.0.0.0'
         # ip = "192.168.0.14"
         # ip = "127.0.0.1"
-        soc.bind((ip, 12345))
+        soc.bind((ip, 28196)) # match this with BROADCAST_PORT in common.consts
         print('Socket bind complete')
     except socket.error as msg:
         import sys

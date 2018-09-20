@@ -10,7 +10,7 @@ print(myIP)
 soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
 # soc.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  
 clients_input = input("What you want to send my dear client?\n")  
-soc.connect((myIP, 53078))
+soc.connect((myIP, 54373))
 
 
 

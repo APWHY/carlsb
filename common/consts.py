@@ -6,6 +6,7 @@ BROADCAST_PORT = 28196
     # This is chosen to be the port on which all nodes listen for broadcasts
     # In the future this won't be needed when a different method for 
     # adding nodes to the network is implemented
+BROADCAST_FREQ = 2
 
 RSA_EXPONENT = 65537
 RSA_KEYSIZE = 2048
@@ -17,7 +18,7 @@ TYPE_CH = 1
 MSG_INTRO = 0
 MSG_TRANS = 1
 MSG_ACK = 2
-
+MSG_KUI = 3 # Not Implemented yet TODO
 
 # PEM serialised public keys are just 451 chars long and IP addresses are 15 chars long
 # signatures are 256 chars long
@@ -26,5 +27,9 @@ MSG_ACK = 2
 MSG_INTRO_FMT = 'ii15si451s'
 # format is int,int,256 char array,451 char array
 MSG_TRANS_FMT = 'ii256s451s'
-# format is int,int,15 char array,int,int
-MSG_ACK_FMT = 'ii15sii'
+# format is int,int,15 char array,int,int,451 char array
+MSG_ACK_FMT = 'ii15sii451s'
+
+
+if __name__ == "__main__":
+    print("hello world")

@@ -8,7 +8,7 @@ import socket
 from threading import Thread
 import select
 
-class CommonNode():
+class commonNode():
 	BSERVPORT = 12345
 	def __init__(self, port, bClientHandle, bServerHandle, sClientHandle, sServerHandle):
 		# set up socket to send broadcasts

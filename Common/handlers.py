@@ -1,6 +1,6 @@
 import socketserver,socket
 
-# This file contains handlers for TCP and UDP requests
+# This file contains default handlers for TCP and UDP requests
 # Likely not used in the project except for testing purposes
 
 

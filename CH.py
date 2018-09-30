@@ -61,6 +61,8 @@ class ClusterHead(peerBase.commonNode):
 
         super().__init__(*args,**kwargs)  # standard commonNode setup
 
+        
+
         self.lock = _thread.allocate_lock() # for modifications to self.CMs
         self.streamServer.CH = self # pass reference to self to the stream and broadcast servers so the handlers can modify the state of the CM based on messages received
         self.broadcastServer.CH = self # This hurts having last worked in go and haskell lmao

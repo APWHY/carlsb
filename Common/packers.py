@@ -57,7 +57,8 @@ class IntroMsg:
 
 
 
-# TransMsg -- for a CM to send a transaction to a CH
+# TransMsg -- for a CM to send a transaction to a CH OR
+#             for a CH to tell a CM it has appended the transaction to the blockchain 
     # always sent via TCP
     # contains 4 things:
         # 1. Message type (MSG_TRANS)

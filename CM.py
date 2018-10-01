@@ -1,5 +1,4 @@
-from common import cryptostuff,packers,peerBase
-from common import consts,handlers
+from common import cryptostuff,packers,peerBase,consts,handlers,msgEvent 
 import socketserver, socket,_thread
 from threading import Thread
 
@@ -29,7 +28,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 else:
                     pass #for now we pass but for future message types we handle them here
 
-# Handles TCP requests for a CM -- should not actually revieve anything and is just a stub
+# Handles TCP requests for a CM -- should only be receiving acknowledgment TRANS_MSGs from CHs
 class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip()
@@ -37,20 +36,32 @@ class TCPHandler(socketserver.BaseRequestHandler):
         print(self.data)
         print("received by : {}:{}".format(self.request.getsockname()[0],self.request.getsockname()[1])) #gets my own address/port pair
         print()
-        self.request.sendall(self.data.upper())
+        for unpack in [packers.TransMsg.ungenMsg(self.data),packers.VerifyMsg.ungenMsg(self.data)]:
+            unpacked = unpack # should only recieve TransMsg 
+            if unpacked != None: # we have recieved a msg
+                rootNode = self.server.CM
+                if unpacked.msgType == consts.MSG_TRANS and unpacked.nodeType == consts.TYPE_CH and unpacked.key == rootNode.CH.IP: #sanity check -- might need code for more than IntroMsg and we only care about IntroMsg from CHs...who should be the only ones sending them
+                    rootNode.holdMsgs(unpacked.signature)
+                    break # we can leave the loop now
+                if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CH and unpacked.key == rootNode.CH.IP:
+                    rootNode.holdMsgs(unpacked.signature,unpacked.result)
+                    break # we can leave the loop now
+                else:
+                    pass # for now we pass but for future message types we handle them here
 
-
+class CHDoesNotExist(Exception):
+    pass
 
 
 class ClusterHeadRep():
     def __init__(self):
         self.exists = False
     
-    def populate(self,ip,port,publicKey):
+    def populate(self,ip,port,pubKey):
         self.exists = True
         self.IP = ip
         self.port = port 
-        self.publicKey = publicKey
+        self.pubKey = pubKey
         #perhaps have a ttl for this but whatever
 
     def depopulate(self):
@@ -71,21 +82,52 @@ class ClusterMember(peerBase.commonNode):
             
             self.lock = _thread.allocate_lock() # for modifications to self.CH and self.privateKey
             self.streamServer.CM = self # pass reference to self to the stream and broadcast servers so the handlers can modify the state of the CM based on messages received
-            self.broadcastServer.CM = self
+            self.broadcastServer.CM = self # bit naughty to do this but beats having another layer of inheritance (and I think it's pythonic anyway to do this?)
             self.privateKey = cryptostuff.newPrivateKey()
-            self.publicKey = self.privateKey.public_key()
+            self.pubKey = self.privateKey.public_key()
             self.CH = ClusterHeadRep()
+            self.holdMsgs = msgEvent.MsgEvent()
 
             super().hold()
             print("CM serving")
+
+        def sendCH(self,msg):
+            super().sendTCP(msg,self.CH.IP,self.CH.port)
 
         # sending an ack is very simple -- assumption is that acks always go to a CH
         def ackCH(self,ackType):
             if self.CH.exists:
                 print("sending ACK to port: " + str(self.CH.port) + " and ip: "+ self.CH.IP)
-                msg = packers.AckMsg(consts.TYPE_CM,self.IP,self.SSERVPORT,ackType,self.publicKey).genMsg()
-                super().sendTCP(msg,self.CH.IP,self.CH.port)
+                msg = packers.AckMsg(consts.TYPE_CM,self.IP,self.SSERVPORT,ackType,self.pubKey).genMsg()
+                self.sendCH(msg)
+            else:
+                raise CHDoesNotExist("This CM is not connected to a CH and cannot execute this function as a result")
+            
         
-        def verifyTransaction(self):
-            pass
-            # TODO
+
+        # Sends the signature of the message off to the CH to be appended to the blockchain
+        # The handler is executed when the TRANS_MSG is recieved back at the CM
+        
+        # The handler is expected to have signature handler()
+        def sendTransaction(self, handler, sig):
+            if self.CH.exists:
+                self.holdMsgs[sig] = handler
+                print("sending transaction off to CH to be appended to blockchain")
+                self.sendCH(packers.TransMsg(consts.TYPE_CM,sig,self.pubKey).genMsg())
+            else:
+                raise CHDoesNotExist("This CM is not connected to a CH and cannot execute this function as a result")
+        
+        # This does not check the quality of the signature, merely whether or not it is in the blockchain
+        # cryptostuff.verifymsg should be called from elsewhere (preferably before calling this function)
+        # Actually just forwards all the info to the CH for it to do the work
+        # Perhaps in the future we can give CM's access to the blockchain but I feel it is somewhat overkill to do so
+        
+        # The handler is expected to have signature handler(bool)
+        def verifyTransaction(self, handler, pubKey, sig):
+            if self.CH.exists:
+                self.holdMsgs[sig] = handler
+                print("checking signature is in blockchain")
+                self.sendCH(packers.VerifyMsg(consts.TYPE_CM,sig,pubKey,self.pubKey,False).genMsg())
+            else:
+                raise CHDoesNotExist("This CM is not connected to a CH and cannot execute this function as a result")
+

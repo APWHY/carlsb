@@ -3,7 +3,7 @@ from common import cryptostuff, packers, consts
 
 # testing stuff with examples of how to use the packers as well
 # messy having all tests out here but I can't be boethered to fix python's crazy import rules
-
+# Nothing for KUIMsg and VerifyMsg but they follow the same patterns
 if __name__ == "__main__":
 
     ip = socket.gethostbyname(socket.gethostname())

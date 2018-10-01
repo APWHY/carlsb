@@ -1,4 +1,4 @@
-from common import cryptostuff,peerBase,packers,consts, repeatable
+from common import cryptostuff,peerBase,packers,consts, repeatable, contractCaller
 import socketserver, socket,_thread, collections
 
 # The assumption for now is that CM's only ever communicate with CH's and vice versa.
@@ -32,7 +32,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
         print()
         unpacked = None
 
-        for unpack in [packers.AckMsg.ungenMsg(self.data)]: #,packers.TransMsg.ungenMsg(self.data)]:
+        for unpack in [packers.AckMsg.ungenMsg(self.data),packers.TransMsg.ungenMsg(self.data)]:
             unpacked = unpack
             if unpacked != None:
                 rootNode = self.server.CH
@@ -42,32 +42,35 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     rootNode.lock.release() # End critical region
                     break
                 if unpacked.msgType == consts.MSG_TRANS and unpacked.nodeType == consts.TYPE_CM and rootNode.checkCM(unpack.key):
-                    rootNode.sendTransaction() # stub
+                    rootNode.sendTransaction() 
                     break
                 else:
                     pass # add other stuff later
 
 
 class ClusterMemberRep():
-    def __init__(self,ip,port,publicKey):
+    def __init__(self,ip,port,pubKey):
         self.IP = ip
         self.port = port 
-        self.publicKey = publicKey
+        self.pubKey = pubKey
+        self.contract = ""
         #perhaps have a ttl for this but whatever
 
 class ClusterHead(peerBase.commonNode):
-    
+     
     def __init__(self,*args,**kwargs):
 
         super().__init__(*args,**kwargs)  # standard commonNode setup
 
+        self.manager  = contractCaller.ContractManager()
         
+            
 
         self.lock = _thread.allocate_lock() # for modifications to self.CMs
         self.streamServer.CH = self # pass reference to self to the stream and broadcast servers so the handlers can modify the state of the CM based on messages received
         self.broadcastServer.CH = self # This hurts having last worked in go and haskell lmao
         self.privateKey = cryptostuff.newPrivateKey()
-        self.publicKey = self.privateKey.public_key()
+        self.pubKey = self.privateKey.public_key()
         self.CMs = collections.deque()
 
         self.rebroadcaster = repeatable.job(self.broadcastIntro,consts.BROADCAST_FREQ) #responsible for periodically calling broadcastIntro
@@ -79,24 +82,43 @@ class ClusterHead(peerBase.commonNode):
 
     # Adds a new CM to the list of CM's the CH knows exists if it isn't already on the list
     # TODO clean out the list every once in a while
-    def newCM(self, ip,port,publicKey):
-        if self.checkCM(publicKey):
-            self.CMs.append(ClusterMemberRep(ip,port,publicKey))
+    def newCM(self, ip,port,pubKey):
+        if self.checkCM(pubKey)[0]:
+            self.CMs.append(ClusterMemberRep(ip,port,pubKey))
 
-    def checkCM(self,publicKey):
+    def checkCM(self,pubKey):
         for d in self.CMs:
-            if d.publicKey == publicKey:
-                return True
-        return False
+            if d.pubKey == pubKey:
+                return True, d
+        return False, None
 
     # helper function -- should be called periodically
     def broadcastIntro(self):
         print("CH sending broadcast...")
-        super().broadcast(packers.IntroMsg(consts.TYPE_CH,self.IP,self.SSERVPORT,self.publicKey).genMsg())
+        super().broadcast(packers.IntroMsg(consts.TYPE_CH,self.IP,self.SSERVPORT,self.pubKey).genMsg())
 
-    def sendTransaction(self):
-        pass
-        # TODO
+    def sendTransaction(self, pubKey, sig):
+        check,sender = self.checkCM(pubKey)
+        if not check:
+            import json
+            print(json.dumps(self.CMs))
+            print(pubKey,sig)
+            raise AssertionError("Attempt to send transaction from unregistered CM")
 
+        print("appending CM transaction to blockchain...")
+        if sender.address == "":
+            sender.address = self.manager.addNode(pubKey,sig)
+        else:
+            self.manager.checkMsg(pubKey,sig)
 
+        print("CM transaction appeneded to blockchain, notifying CM now...")
+        super().sendTCP(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg(),sender.ip,sender.port)
+
+    # only checks if the source of pubKey has actually put up sig on the blockchain
+    # verification of signature with message should be done elsewhere
+    def verifyTransaction(self, pubKey, sig):
+        sender = self.manager.getNode(pubKey)
+        if sender == 0:
+            return False
+        return self.manager.checkMsg(sender, sig)
 

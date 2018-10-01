@@ -5,6 +5,8 @@ import struct
 # They all implement a simple interface and are used to serialise important information
 # That nodes want to send to each other (and unpack them as well)
 
+# Also realised that a way better way to do this would be to use json.dumps
+# Will fix this is I have time TODO
 
 # IntroMsg -- for a node to inform another node of its existence
 # always sent on the broadcast channel
@@ -62,9 +64,9 @@ class IntroMsg:
     # always sent via TCP
     # contains 4 things:
         # 1. Message type (MSG_TRANS)
-        # 2. Node type (whether the sender is a CH or CM as an int)
-        # 3. Signature of the message being sent (256 bytes)
-        # 4. The public key of the sender (assumed to be a cryptography.hazmat.backends.openssl.rsa.RSAPublicKey type)
+        # 2. Node type (whether the sender of the TransMsg is a CH or CM as an int)
+        # 3. Signature of the message (the transaction) being sent which we want to append to the blockchain (256 bytes)
+        # 4. The public key of the sender of the TransMsg (assumed to be a cryptography.hazmat.backends.openssl.rsa.RSAPublicKey type)
 class TransMsg:
 
     fmt = struct.Struct(consts.MSG_TRANS_FMT) # the specific format of how we plan on serialising our struct
@@ -156,11 +158,107 @@ class AckMsg:
             return None
 
 
-# TODO MSG_KUI
+
+# VerifyMsg -- for a CM to ask a CH to verify a message OR
+#             for a CH to tell a CM the result of a verification process 
+    # always sent via TCP
+    # contains 4 things:
+        # 1. Message type (MSG_VERIFY)
+        # 2. Node type (whether the sender of the VerifyMsg is a CH or CM as an int)
+        # 3. Signature of the message (the transaction) which we want to verify (256 bytes)
+        # 4. The public key of the sender of the transaction that we want to verify (assumed to be a cryptography.hazmat.backends.openssl.rsa.RSAPublicKey type)
+        # 5. The public key of the sender of the VerifyMsg (assumed to be a cryptography.hazmat.backends.openssl.rsa.RSAPublicKey type)
+        # 6. The result of the verification process as a bool (ignored when sent by a CM)
+class VerifyMsg:
+
+    fmt = struct.Struct(consts.MSG_VERIFY_FMT) # the specific format of how we plan on serialising our struct
+     
+    msgType = consts.MSG_VERIFY
+    def __init__(self, nodeType, signature,keyTransSender,keySender, result):
+        self.nodeType = nodeType
+        self.signature = signature
+        self.keyTransSender = keyTransSender # this should be a public key
+        self.keySender = keySender
+        self.result = result
 
 
+    # genMsg -- Takes a VerifyMsg object and seralises it into bytes for sending over a network
+    def genMsg(self):
+        values = (
+            self.msgType,
+            self.nodeType,
+            self.signature,
+            cryptostuff.keyToBytes(self.keyTransSender),
+            cryptostuff.keyToBytes(self.keySender),
+            self.result
+        )
+        return self.fmt.pack(*values) # splat
 
 
+    # The below method is static because we want to call it without an instance of VerifyMsg
+    # We can think of it as an alternative constructor (if you're into Java)  
+    #  
+    # ungenMsg -- takes a serialised VerifyMsg and returns a VerifyMsg with all types correctly set
+    # If not given a bytes object with VerifyMsg.fmt's formatting, returns TypeError
+    @staticmethod
+    def ungenMsg(data):
+        opened = VerifyMsg.fmt.unpack(data)
+        if opened[0] == VerifyMsg.msgType:
+            raw = VerifyMsg.fmt.unpack(data)
+            retVal = VerifyMsg(*raw[1:])
+            retVal.keyTransSender = cryptostuff.bytesToKey(retVal.keyTransSender)
+            retVal.keySender = cryptostuff.bytesToKey(retVal.keySender)
+            return retVal 
+        else:
+            return None
+
+
+# KUIMsg -- for a CM to notify a CH of a change in it's public key
+    # always sent via TCP
+    # contains 4 things:
+        # 1. Message type (MSG_KUI)
+        # 2. Node type (whether the sender of the KUIMsg is a CH or CM as an int)
+        # 3. The old public key of the sender of the KUIMsg (assumed to be a cryptography.hazmat.backends.openssl.rsa.RSAPublicKey type)
+        # 4. The new public key of the sender of the KUIMsg (assumed to be a cryptography.hazmat.backends.openssl.rsa.RSAPublicKey type)
+class KUIMsg:
+
+    fmt = struct.Struct(consts.MSG_KUI_FMT) # the specific format of how we plan on serialising our struct
+    
+    msgType = consts.MSG_KUI
+    def __init__(self, nodeType, signature,keyOld, keyNew):
+        self.nodeType = nodeType
+        self.signature = signature
+        self.keyOld = keyOld # this should be a public key
+        self.keyNew = keyNew
+
+    # genMsg -- Takes a KUIMsg object and seralises it into bytes for sending over a network
+    def genMsg(self):
+        values = (
+            self.msgType,
+            self.nodeType,
+            self.signature,
+            cryptostuff.keyToBytes(self.keyOld),
+            cryptostuff.keyToBytes(self.keyNew)
+        )
+        return self.fmt.pack(*values) # splat
+
+
+    # The below method is static because we want to call it without an instance of KUIMsg
+    # We can think of it as an alternative constructor (if you're into Java)  
+    #  
+    # ungenMsg -- takes a serialised KUIMsg and returns a KUIMsg with all types correctly set
+    # If not given a bytes object with KUIMsg.fmt's formatting, returns TypeError
+    @staticmethod
+    def ungenMsg(data):
+        opened = KUIMsg.fmt.unpack(data)
+        if opened[0] == KUIMsg.msgType:
+            raw = KUIMsg.fmt.unpack(data)
+            retVal = KUIMsg(*raw[1:])
+            retVal.keyOld = cryptostuff.bytesToKey(retVal.keyOld)
+            retVal.keyNew = cryptostuff.bytesToKey(retVal.keyNew)
+            return retVal 
+        else:
+            return None
 
     
 

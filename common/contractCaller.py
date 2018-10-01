@@ -45,30 +45,26 @@ contract Individual {
         return chain[signature];
     }
 }
-'''
+''' 
 
 ipcLocation = "../chain/easy/geth.ipc"
 accPassword = "hancott" # I don't know how to make a password-less account so this has a password
 filename = './factory.contract'
 
-class contractManager():
+class ContractManager():
 
-    # we require a __new__ method here as we refuse to instantiate the contractManager
-    # class unless a geth node is already up and running
-    def __new__(cls):
-        try:
-            Web3.IPCProvider(ipcLocation)
-        except:
-            return False
-        return super(contractManager, cls).__new__(cls)
 
     def __init__(self):
+        try:
+            my_provider = Web3.IPCProvider(ipcLocation)
+        except FileNotFoundError as e:
+            raise FileNotFoundError("Problem using IPC handle for blockchain at " + ipcLocation + ". Have you forgotten to start one up? Original raised exception was: " + e)
         
         self.compiled_sol = compile_source(contract_source_code) # Compiled source code
     
         self.factory_interface = compiled_sol['<stdin>:Factory']
         self.individual_interface = compiled_sol['<stdin>:Individual']
-        my_provider = Web3.IPCProvider(ipcLocation)
+
         self.w3 = Web3(my_provider)
         self.w3.personal.unlockAccount(w3.personal.listAccounts[0],accPassword,150000)
         # Retrieve factory contract if it already exists
@@ -168,7 +164,7 @@ if __name__ == "__main__":
         )  
     else:
         # Instantiate and deploy contract
-        Factory = w3.eth.contract(abi=contract_interface['abi'], bytecode=contract_interface['bin'])
+        Factory = w3.eth.contract(abi=factory_interface['abi'], bytecode=factory_interface['bin'])
     
         # Submit the transaction that deploys the contract
         tx_hash = Factory.constructor().transact()

@@ -1,24 +1,14 @@
 import http.server
 import socketserver
-import socket
 import os
 import shutil
+from common import utils,consts
 
-PORT = 8088
 
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
 
-class HTTPHandlerOne(http.server.BaseHTTPRequestHandler):
+
+
+class SimpleFileHandler(http.server.BaseHTTPRequestHandler):
     serving = os.path.join(os.path.curdir, 'simplehttp', 'download','example')
     def do_GET(self):
         f = open(self.serving,'rb') 
@@ -32,12 +22,12 @@ class HTTPHandlerOne(http.server.BaseHTTPRequestHandler):
         f.close()
         
         
+if __name__ == "__main__": # must run this from root dir or it won't work
 
+    handler = SimpleFileHandler
+    ip = utils.get_ip()
 
-Handler = HTTPHandlerOne
-
-
-with socketserver.TCPServer(("",PORT), Handler) as httpd:
-    print("serving at port", PORT)
-    print("serving at address", get_ip())
-    httpd.serve_forever()
+    with socketserver.TCPServer((ip,consts.PORT), handler) as httpd:
+        print("serving at port", consts.PORT)
+        print("serving at address", ip)
+        httpd.serve_forever()

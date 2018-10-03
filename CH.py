@@ -1,4 +1,4 @@
-from common import cryptostuff,peerBase,packers,consts, repeatable, contractCaller
+from common import cryptostuff,peerBase,packers,consts, utils, contractCaller
 import socketserver, socket,_thread, collections
 
 # The assumption for now is that CM's only ever communicate with CH's and vice versa.
@@ -73,7 +73,7 @@ class ClusterHead(peerBase.commonNode):
         self.pubKey = self.privateKey.public_key()
         self.CMs = collections.deque()
 
-        self.rebroadcaster = repeatable.job(self.broadcastIntro,consts.BROADCAST_FREQ) #responsible for periodically calling broadcastIntro
+        self.rebroadcaster = utils.job(self.broadcastIntro,consts.BROADCAST_FREQ) #responsible for periodically calling broadcastIntro
     
         super().hold()
         self.rebroadcaster.start()

@@ -42,6 +42,9 @@ MSG_VERIFY_FMT = 'ii256s451s451s?'
 MSG_KUI_FMT = 'ii451s451s'
 
 
+# port that the CH will serve all files on
+HTTP_PORT = 8088
+
 
 if __name__ == "__main__":
     print("hello world")

@@ -8,7 +8,7 @@ import socket
 import socketserver
 from threading import Thread
 import select
-from common import consts
+from common import consts,utils
 import time
 
 
@@ -21,7 +21,7 @@ class commonNode():
 						
 	def __init__(self, broadcastHandler, streamHandler):
 		# we get our own ip
-		self.IP = socket.gethostbyname(socket.gethostname())
+		self.IP = utils.get_ip()
 		print(broadcastHandler,streamHandler)
 		# set up our streaming server
 		self.streamServer = socketserver.TCPServer((self.IP,0), streamHandler )

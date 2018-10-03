@@ -1,4 +1,4 @@
-import threading,time
+import threading,time,socket
 
 # simple module to repeat any job every <delay> seconds
 # The scheduling library does this really well but is pretty overkill -- if you need 
@@ -28,3 +28,15 @@ class job():
         self.running = False #boolean assignment is atomic so we don't have anything to worry aobut
 
 
+
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP

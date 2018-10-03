@@ -11,5 +11,5 @@ if __name__ == "__main__":
     print(mem.IP,mem.BSERVPORT,mem.SSERVPORT)
     time.sleep(1)
     print(len(head.CMs))
-    time.sleep(300)
+    time.sleep(10)
 

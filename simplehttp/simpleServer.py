@@ -9,7 +9,7 @@ from common import utils,consts
 
 
 class SimpleFileHandler(http.server.BaseHTTPRequestHandler):
-    serving = os.path.join(os.path.curdir, 'simplehttp', 'download','example')
+    serving = os.path.join(os.path.curdir, 'simplehttp', 'download','example') # default, can be overridden
     def do_GET(self):
         f = open(self.serving,'rb') 
         self.send_response(200)
@@ -27,7 +27,7 @@ if __name__ == "__main__": # must run this from root dir or it won't work
     handler = SimpleFileHandler
     ip = utils.get_ip()
 
-    with socketserver.TCPServer((ip,consts.PORT), handler) as httpd:
-        print("serving at port", consts.PORT)
+    with socketserver.TCPServer((ip,consts.HTTP_PORT), handler) as httpd:
+        print("serving at port", consts.HTTP_PORT)
         print("serving at address", ip)
         httpd.serve_forever()

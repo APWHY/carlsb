@@ -27,6 +27,8 @@ MSG_ACK = 2
 MSG_VERIFY = 3
 MSG_KUI = 4 
 
+MSG_MSG = 99 # this is only to help for demonstration purposes
+
 # PEM serialised public keys are just 451 chars long and IP addresses are 15 chars long
 # signatures are 256 chars long
 
@@ -40,6 +42,12 @@ MSG_ACK_FMT = 'ii15sii451s'
 MSG_VERIFY_FMT = 'ii256s451s451s?'
 # format is int,int,451 char array,451 char array
 MSG_KUI_FMT = 'ii451s451s'
+
+
+# format is int,int,15 char array,int,256 char array,451 char array
+MSG_MSG_FMT = 'ii15si256s451s' # this is only to help for demonstration purposes
+
+
 
 
 # port that the CH will serve all files on

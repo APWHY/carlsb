@@ -15,16 +15,18 @@ class UDPHandler(socketserver.BaseRequestHandler):
         print()
         unpacked = None
 
-        for unpack in [packers.IntroMsg.ungenMsg(data)]:
+        for unpack in [packers.IntroMsg.ungenMsg(data), packers.MsgMsg.ungenMsg(data)]:
             unpacked = unpack # should only recieve IntroMsg 
             if unpacked != None: # we have recieved a msg
+                rootNode = self.server.CM
                 if unpacked.msgType == consts.MSG_INTRO and unpacked.nodeType == consts.TYPE_CH: #sanity check -- might need code for more than IntroMsg and we only care about IntroMsg from CHs...who should be the only ones sending them
-                    rootNode = self.server.CM
                     rootNode.lock.acquire() # Critical region
                     rootNode.CH.populate(unpacked.IP,unpacked.port,unpacked.key)
                     rootNode.lock.release() # End critical region
                     rootNode.ackCH(unpacked.msgType)
                     break #we can leave the for loop now
+                if unpacked.msgType == consts.MSG_MSG and unpacked.nodeType == consts.TYPE_CM and rootNode.hasDownload:
+                        rootNode.hasDownload(unpacked.IP,unpacked.port,unpacked.signature,unpacked.key)
                 else:
                     pass #for now we pass but for future message types we handle them here
 
@@ -41,10 +43,10 @@ class TCPHandler(socketserver.BaseRequestHandler):
             if unpacked != None: # we have recieved a msg
                 rootNode = self.server.CM
                 if unpacked.msgType == consts.MSG_TRANS and unpacked.nodeType == consts.TYPE_CH and unpacked.key == rootNode.CH.IP: #sanity check -- might need code for more than IntroMsg and we only care about IntroMsg from CHs...who should be the only ones sending them
-                    rootNode.holdMsgs(unpacked.signature)
+                    rootNode.holdMsgs()
                     break # we can leave the loop now
                 if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CH and unpacked.key == rootNode.CH.IP:
-                    rootNode.holdMsgs(unpacked.signature,unpacked.result)
+                    rootNode.holdMsgs(unpacked.result)
                     break # we can leave the loop now
                 else:
                     pass # for now we pass but for future message types we handle them here
@@ -87,9 +89,14 @@ class ClusterMember(peerBase.commonNode):
             self.pubKey = self.privateKey.public_key()
             self.CH = ClusterHeadRep()
             self.holdMsgs = msgEvent.MsgEvent()
-
+            self.hasDownload = False
             super().hold()
             print("CM serving")
+
+
+        def addDownloadFunc(self, downloadFunc):
+            self.hasDownload = True
+            self.downloadFunc = downloadFunc
 
         def sendCH(self,msg):
             super().sendTCP(msg,self.CH.IP,self.CH.port)

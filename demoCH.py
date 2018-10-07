@@ -9,20 +9,16 @@ class demoCH(CH.ClusterHead):
 
 	def __init__(self,*args, **kwargs):
 		super().__init__(*args,**kwargs) #do standard CH stuff
-		self.httpIP = utils.get_ip()
-		self.fileServer = socketserver.TCPServer((self.httpIP,consts.HTTP_PORT),simpleServer.SimpleFileHandler)
 		print("demoCH serving")
 		super().broadcastIntro()
 
-	def serveFile(self):
-		Thread(target=self.fileServer.serve_forever,daemon=True).start()
 
 
 
 
 if __name__ == "__main__":
 	head = demoCH(CH.UDPHandler,CH.TCPHandler)
-	time.sleep(10)
+	time.sleep(300)
 
     # head = CH.ClusterHead(CH.UDPHandler,CH.TCPHandler)
     # mem = CM.ClusterMember(CM.UDPHandler,CM.TCPHandler) 

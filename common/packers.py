@@ -6,6 +6,7 @@ import struct
 # That nodes want to send to each other (and unpack them as well)
 
 # Also realised that a way better way to do this would be to use json.dumps
+# I mean there are a billion better ways (function array) to do this but oh well
 # Will fix this is I have time TODO
 
 # IntroMsg -- for a node to inform another node of its existence
@@ -261,4 +262,63 @@ class KUIMsg:
             return None
 
     
+
+
+
+# MsgMsg -- not needed for this network but instead used as a helper msg for demonstration and testing purposes
+#           used to tell all nodes where a message can be downloaded from and what it's signature is
+#           for general use this function should be implemented outside of the network but it's easier to have it in here for now
+    # always sent via UDP
+    # contains 4 things:
+        # 1. Message type (MSG_MSG)
+        # 2. Node type (whether the sender of the MsgMsg is a CH or CM as an int)
+        # 3. IP address where the message can be downloaded
+        # 4. Port where the message can be downloaded
+        # 5. Signature of the message sent
+        # 6. Public Key of the sender
+class MsgMsg:
+
+    fmt = struct.Struct(consts.MSG_MSG_FMT) # the specific format of how we plan on serialising our struct
+    
+    msgType = consts.MSG_MSG
+    def __init__(self, nodeType, ip, port, signature,key):
+        self.nodeType = nodeType
+        self.IP = ip
+        self.port = port
+        self.signature = signature
+        self.key = key # this should be a public key
+
+
+    # genMsg -- Takes a MsgMsg object and seralises it into bytes for sending over a network
+    def genMsg(self):
+        values = (
+            self.msgType,
+            self.nodeType,
+            bytes(self.IP,'utf-8'),
+            self.port,
+            self.signature,
+            cryptostuff.keyToBytes(self.key),
+        )
+        return self.fmt.pack(*values) # splat
+
+
+    # The below method is static because we want to call it without an instance of MsgMsg
+    # We can think of it as an alternative constructor (if you're into Java)  
+    #  
+    # ungenMsg -- takes a serialised MsgMsg and returns a MsgMsg with all types correctly set
+    # If not given a bytes object with MsgMsg.fmt's formatting, returns TypeError
+    @staticmethod
+    def ungenMsg(data):
+        opened = MsgMsg.fmt.unpack(data)
+        if opened[0] == MsgMsg.msgType:
+            raw = MsgMsg.fmt.unpack(data)
+            retVal = MsgMsg(*raw[1:])
+            retVal.IP = retVal.IP.decode('utf-8').replace("\x00",'') # remove null chars at the end of the string
+            retVal.key = cryptostuff.bytesToKey(retVal.key)
+            return retVal 
+        else:
+            return None
+
+    
+
 

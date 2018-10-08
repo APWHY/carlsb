@@ -16,7 +16,7 @@ class demoCH(CM.ClusterMember):
     def prepareServer(self):
         testFilePath =  os.path.join(os.path.curdir, 'simplehttp', 'download','example')
         self.fileServer.serving = testFilePath
-        f = open(testFilePath,"r")
+        f = open(testFilePath,"rb")
         msg = f.read()
         self.msgSig = cryptostuff.signMsg(self.privateKey,msg)
         self.sendTransaction(self.serveFile,self.msgSig)

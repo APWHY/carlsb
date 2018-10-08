@@ -48,7 +48,10 @@ class IntroMsg:
     # If not given a bytes object with IntroMsg.fmt's formatting, returns TypeError
     @staticmethod
     def ungenMsg(data):
-        opened = IntroMsg.fmt.unpack(data)
+        try:
+            opened = IntroMsg.fmt.unpack(data)
+        except struct.error:
+            return None
         if opened[0] == IntroMsg.msgType:
             raw = IntroMsg.fmt.unpack(data)
             retVal = IntroMsg(*raw[1:])
@@ -97,7 +100,10 @@ class TransMsg:
     # If not given a bytes object with TransMsg.fmt's formatting, returns TypeError
     @staticmethod
     def ungenMsg(data):
-        opened = TransMsg.fmt.unpack(data)
+        try:
+            opened = TransMsg.fmt.unpack(data)
+        except struct.error:
+            return None
         if opened[0] == TransMsg.msgType:
             raw = TransMsg.fmt.unpack(data)
             retVal = TransMsg(*raw[1:])
@@ -148,7 +154,10 @@ class AckMsg:
     # If not given a bytes object with AckMsg.fmt's formatting, returns TypeError
     @staticmethod
     def ungenMsg(data):
-        opened = AckMsg.fmt.unpack(data)
+        try:
+            opened = AckMsg.fmt.unpack(data)
+        except struct.error:
+            return None
         if opened[0] == AckMsg.msgType:
             raw = AckMsg.fmt.unpack(data)
             retVal = AckMsg(*raw[1:])
@@ -203,7 +212,11 @@ class VerifyMsg:
     # If not given a bytes object with VerifyMsg.fmt's formatting, returns TypeError
     @staticmethod
     def ungenMsg(data):
-        opened = VerifyMsg.fmt.unpack(data)
+        try:
+            opened = VerifyMsg.fmt.unpack(data)
+        except struct.error:
+            return None
+
         if opened[0] == VerifyMsg.msgType:
             raw = VerifyMsg.fmt.unpack(data)
             retVal = VerifyMsg(*raw[1:])
@@ -251,7 +264,10 @@ class KUIMsg:
     # If not given a bytes object with KUIMsg.fmt's formatting, returns TypeError
     @staticmethod
     def ungenMsg(data):
-        opened = KUIMsg.fmt.unpack(data)
+        try:
+            opened = KUIMsg.fmt.unpack(data)
+        except struct.error:
+            return None
         if opened[0] == KUIMsg.msgType:
             raw = KUIMsg.fmt.unpack(data)
             retVal = KUIMsg(*raw[1:])
@@ -309,7 +325,10 @@ class MsgMsg:
     # If not given a bytes object with MsgMsg.fmt's formatting, returns TypeError
     @staticmethod
     def ungenMsg(data):
-        opened = MsgMsg.fmt.unpack(data)
+        try:
+            opened = MsgMsg.fmt.unpack(data)
+        except struct.error:
+            return None
         if opened[0] == MsgMsg.msgType:
             raw = MsgMsg.fmt.unpack(data)
             retVal = MsgMsg(*raw[1:])

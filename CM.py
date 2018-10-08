@@ -33,7 +33,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
 # Handles TCP requests for a CM -- should only be receiving acknowledgment TRANS_MSGs from CHs
 class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
-        self.data = self.request.recv(1024)# .strip()
+        self.data = self.request.recv(consts.RECV_SIZE)# .strip()
         print("{}:{}@CMTCP wrote: ".format(self.client_address[0],self.client_address[1]))
         print(self.data)
         print("received by : {}:{}".format(self.request.getsockname()[0],self.request.getsockname()[1])) #gets my own address/port pair
@@ -136,6 +136,7 @@ class ClusterMember(peerBase.commonNode):
             if self.CH.exists:
                 self.holdMsgs[sig] = handler
                 print("checking signature is in blockchain")
+                print(len(packers.VerifyMsg(consts.TYPE_CM,sig,pubKey,self.pubKey,False).genMsg()))
                 self.sendCH(packers.VerifyMsg(consts.TYPE_CM,sig,pubKey,self.pubKey,False).genMsg())
             else:
                 raise CHDoesNotExist("This CM is not connected to a CH and cannot execute this function as a result")

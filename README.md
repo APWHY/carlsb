@@ -31,3 +31,7 @@ If using Ethereum as an attached blockchain, then these are required:
  After creating a private network (using your custom `genesis.json` file), look inside your `datadir` for a file called `geth.ipc`. This is the path that you will need to enter into `<insert location here>`.  
 
  More stuff....
+
+ # Things not yet implemented!
+ * CM's and CH's don't forget the other nodes that they are connected to (there is no ttl system anywhere in the code)
+ * KUI intervals have not been implemented (although the relevante packer has been written)

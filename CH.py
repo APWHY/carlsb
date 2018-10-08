@@ -37,6 +37,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             if unpacked != None:
                 rootNode = self.server.CH
                 if unpacked.msgType == consts.MSG_ACK and unpacked.nodeType == consts.TYPE_CM:
+                    print("adding new CM")
                     rootNode.lock.acquire() # Critical region
                     rootNode.newCM(unpacked.IP,unpacked.port,unpacked.key)
                     rootNode.lock.release() # End critical region
@@ -101,7 +102,8 @@ class ClusterHead(peerBase.commonNode):
         check,sender = self.checkCM(pubKey)
         if not check:
             import json
-            print(json.dumps(self.CMs))
+            for d in self.CMs:
+                print(json.dumps(d))
             print(pubKey,sig)
             raise AssertionError("Attempt to send transaction from unregistered CM")
 

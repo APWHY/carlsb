@@ -22,7 +22,7 @@ class Car(CM.ClusterMember):
             msgf = urllib.request.urlopen(addr)
             msg = msgf.read()
             print(msg)
-            if cryptostuff.verifyMsg(self.pubKey,msg,self.msgSig):
+            if cryptostuff.verifyMsg(self.msgPubKey,msg,self.msgSig):
                 print("message is verified properly!")
                 return True
             else:

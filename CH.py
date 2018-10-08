@@ -8,7 +8,6 @@ import socketserver, socket,_thread, collections
 class UDPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         data = self.request[0]#.strip()
-        _ = data #delete this TODO
         usingSocket = self.request[1]
         print("{}:{}@CHUDP wrote: ".format(self.client_address[0],self.client_address[1]))
         print(data)

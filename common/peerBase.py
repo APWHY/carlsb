@@ -33,7 +33,10 @@ class commonNode():
 		# for broadcasts
 		socketserver.UDPServer.allow_reuse_address = True
 		self.broadcastServer = socketserver.UDPServer((self.IP,self.BSERVPORT), broadcastHandler)
-
+		tempSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		tempSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		tempSocket.bind(('0.0.0.0',self.BSERVPORT))
+		self.broadcastServer.socket = tempSocket
 
 	
 

@@ -13,7 +13,8 @@ This readme will demonstrate how to set up a private Ethereum network and connec
 
 * Python 3.6
 * The `cryptography` library (https://cryptography.io/en/latest/)
-    available by running `pip install cryptography`
+    available by running `pip install cryptography` on windows. On other systems follow steps listed here: https://cryptography.io/en/latest/installation/
+    
 ---
 If using Ethereum as an attached blockchain, then these are required:
 * `geth` (go-ethereum)

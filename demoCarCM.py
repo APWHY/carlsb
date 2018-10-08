@@ -8,6 +8,7 @@ class Car(CM.ClusterMember):
         super().__init__(*args,**kwargs)
 
     def checkChain(self, ip, port, signature, pubKey):
+        print("---------------------------------------------------------------------")
         self.msgIP = ip
         self.msgPort = port
         self.msgSig = signature

@@ -31,7 +31,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
         print()
         unpacked = None
 
-        for unpack in [packers.AckMsg.ungenMsg(self.data),packers.TransMsg.ungenMsg(self.data)]:
+        for unpack in [packers.AckMsg.ungenMsg(self.data),packers.TransMsg.ungenMsg(self.data),packers.VerifyMsg.ungenMsg(self.data)]:
             unpacked = unpack
             if unpacked != None:
                 rootNode = self.server.CH
@@ -44,6 +44,9 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 if unpacked.msgType == consts.MSG_TRANS and unpacked.nodeType == consts.TYPE_CM and rootNode.checkCM(unpack.key):
                     rootNode.sendTransaction(unpack.key,unpack.signature) 
                     break
+                if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CM:
+                    print("|||||||||||||||||||||||||||||||||||||||||||||||")
+                    rootNode.verifyTransaction(unpacked.key,unpacked.signature,self.request.getsockname()[0],self.request.getsockname()[1])               
                 else:
                     pass # add other stuff later
 
@@ -133,13 +136,17 @@ class ClusterHead(peerBase.commonNode):
 
     # only checks if the source of pubKey has actually put up sig on the blockchain
     # verification of signature with message should be done elsewhere
-    def verifyTransaction(self, pubKey, sig):
+    def verifyTransaction(self, pubKey, sig, ip, port):
+        print("received verify -- checking on chain....")
         check,sender = self.checkCM(pubKey)
         if check:
             contractAddr = sender.address
         else:
             contractAddr = self.manager.getNode(cryptostuff.keyToBytes(pubKey))
         if sender == 0:
-            return False
-        return self.manager.checkMsg(contractAddr, sig)
+            res = False
+        res =  self.manager.checkMsg(contractAddr, sig)
+
+        msg = packers.VerifyMsg(consts.TYPE_CH,sig,pubKey,self.pubKey,res).genMsg()
+        super().sendTCP(msg,ip,port)
 

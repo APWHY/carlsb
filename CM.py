@@ -26,7 +26,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                     rootNode.ackCH(unpacked.msgType)
                     break #we can leave the for loop now
                 if unpacked.msgType == consts.MSG_MSG and unpacked.nodeType == consts.TYPE_CM and rootNode.hasDownload:
-                        rootNode.hasDownload(unpacked.IP,unpacked.port,unpacked.signature,unpacked.key)
+                        rootNode.downloadFunc(unpacked.IP,unpacked.port,unpacked.signature,unpacked.key)
                 else:
                     pass #for now we pass but for future message types we handle them here
 

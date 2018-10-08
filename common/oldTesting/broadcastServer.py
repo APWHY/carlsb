@@ -72,7 +72,7 @@ def start_server():
         print('Socket bind complete')
     except socket.error as msg:
         import sys
-        print('Bind failed. Error : ' + str(sys.exc_info()) + " msg: " + msg)
+        print('Bind failed. Error : ' + str(sys.exc_info()) + " msg: " + str(msg))
         sys.exit()
 
     print(soc.getsockname())

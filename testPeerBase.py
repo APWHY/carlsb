@@ -54,7 +54,7 @@ def testSendsTCP(first):
     soc.bind((ip,0))
     soc.listen(10)
     # make a TCP transmission
-    testString = "new message incoming!"
+    testString = b"new message incoming!"
     Thread(target=first.sendTCP, args=(testString,ip,soc.getsockname()[1]), daemon=True).start()
     # normally you would handle this in a seperate thread but since we're only testing one conn it's fine
     conn, addr = soc.accept()
@@ -63,7 +63,7 @@ def testSendsTCP(first):
     conn.sendall("ack".encode("utf8"))
     conn.close()
     soc.close()
-    assert(testString == res.decode("utf8"))
+    assert(testString == res)
 
 def testSendsBroadcast(first):
     # create a simple udp server to listen for the transmission

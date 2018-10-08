@@ -120,7 +120,7 @@ class ContractManager():
     def checkMsg(self, addr, sig):
         target = self.w3.eth.contract(
             address = addr,
-            abi=individual_interface['abi'],
+            abi=self.individual_interface['abi'],
         )
 
         check = target.functions.checkSignature(sig).call()

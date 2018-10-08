@@ -23,7 +23,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
 # Handles TCP requests for a CH -- should not actually recieve anything and is just a stub
 class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
-        self.data = self.request.recv(1024) # .strip()
+        self.data = self.request.recv(consts.RECV_SIZE) # .strip()
         # print(len(self.data))
         # print("{}:{}@CMTCP wrote: ".format(self.client_address[0],self.client_address[1]))
         # print(self.data)
@@ -46,7 +46,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     break
                 if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CM:
                     print("|||||||||||||||||||||||||||||||||||||||||||||||")
-                    rootNode.verifyTransaction(unpacked.key,unpacked.signature,self.request.getsockname()[0],self.request.getsockname()[1])               
+                    rootNode.verifyTransaction(unpacked.keyTransSender,unpacked.keySender,unpacked.signature)               
                 else:
                     pass # add other stuff later
 
@@ -124,9 +124,19 @@ class ClusterHead(peerBase.commonNode):
         # print(sig)
         # sigStr = sig.decode(consts.ENCODE_SIG)
         if sender.contract == "":
-            sender.contract = self.manager.addNode(pubKeyBytes,sig)
+            print("adding node")
+            self.manager.addNode(pubKeyBytes,sig)
+            sender.contract = self.manager.getNode(pubKeyBytes)
         else:
-            self.manager.checkMsg(pubKeyBytes,sig)
+            print("repeat Customer")
+            self.manager.postMsg(sender.contract,sig)
+            
+        self.oldSig = sig    
+        self.oldKey = pubKey
+
+        print(sender.contract)
+
+        self.manager.checkMsg(sender.contract,sig)
 
         print("CM transaction appeneded to blockchain, notifying CM now...")
         print(packers.TransMsg.ungenMsg(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg()))
@@ -136,17 +146,35 @@ class ClusterHead(peerBase.commonNode):
 
     # only checks if the source of pubKey has actually put up sig on the blockchain
     # verification of signature with message should be done elsewhere
-    def verifyTransaction(self, pubKey, sig, ip, port):
-        print("received verify -- checking on chain....")
-        check,sender = self.checkCM(pubKey)
+    def verifyTransaction(self, pubKeyTransSender, pubKeySender, sig):
+        check,sender = self.checkCM(pubKeySender)
+        if not check:
+            raise AssertionError("This user doesn't exist")
+
+        print("received verify -- checking on chain....")        
+        check,transSender = self.checkCM(pubKeyTransSender)
         if check:
-            contractAddr = sender.address
+            contractAddr = transSender.contract
         else:
-            contractAddr = self.manager.getNode(cryptostuff.keyToBytes(pubKey))
+            contractAddr = self.manager.getNode(cryptostuff.keyToBytes(pubKeyTransSender))
         if sender == 0:
             res = False
+
+        print(sig)
+        print(self.oldSig)
+        print(pubKeyTransSender.public_numbers())
+        print(self.oldKey.public_numbers())
+
+        assert sig == self.oldSig
+        assert pubKeyTransSender.public_numbers().n == self.oldKey.public_numbers().n
+ 
         res =  self.manager.checkMsg(contractAddr, sig)
 
-        msg = packers.VerifyMsg(consts.TYPE_CH,sig,pubKey,self.pubKey,res).genMsg()
-        super().sendTCP(msg,ip,port)
+        print(res)
+
+        msg = packers.VerifyMsg(consts.TYPE_CH,sig,pubKeyTransSender,self.pubKey,res).genMsg()
+        print(sender.IP,sender.port)
+        print("transaction verification attempted, responding to car")
+
+        super().sendTCP(msg,sender.IP,sender.port)
 

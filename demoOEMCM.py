@@ -26,8 +26,8 @@ class demoCH(CM.ClusterMember):
         print("transaction posted, serving file!")
         Thread(target=self.fileServer.serve_forever,daemon=True).start()
         # slight probability for race condition here but it'll be fine for a demo
-        msg = packers.MsgMsg(consts.TYPE_CM,self.httpIP,consts.HTTP_PORT,self.msgSig,self.pubKey)
-        self.sendCH(msg)
+        msg = packers.MsgMsg(consts.TYPE_CM,self.httpIP,consts.HTTP_PORT,self.msgSig,self.pubKey).genMsg()
+        self.broadcast(msg)
 
 
 

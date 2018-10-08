@@ -71,7 +71,7 @@ if __name__ == "__main__":
         key_size=2048, #use const here
         backend=default_backend()
     )
-    private_key.private_numbers
+    # private_key.private_numbers
 
 
 
@@ -84,8 +84,11 @@ if __name__ == "__main__":
         ),
         hashes.SHA256()
     )
+    print(signature.decode("idna"))
 
     pub = private_key.public_key()
+    print(pub.public_numbers())
+    print(str(keyToBytes(pub)))
     pub.verify(signature,
         message,
         padding.PSS(
@@ -94,6 +97,4 @@ if __name__ == "__main__":
         ),
         hashes.SHA256()
     )
-    PublicFormat.p
-
 

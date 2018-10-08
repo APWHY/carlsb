@@ -100,10 +100,13 @@ class TransMsg:
     # If not given a bytes object with TransMsg.fmt's formatting, returns TypeError
     @staticmethod
     def ungenMsg(data):
-        try:
-            opened = TransMsg.fmt.unpack(data)
-        except struct.error:
-            return None
+        print(len(data))
+        opened = TransMsg.fmt.unpack(data)
+        # try:
+        #     opened = TransMsg.fmt.unpack(data)
+        # except struct.error:
+        #     print("error!!!")
+        #     return None
         if opened[0] == TransMsg.msgType:
             raw = TransMsg.fmt.unpack(data)
             retVal = TransMsg(*raw[1:])

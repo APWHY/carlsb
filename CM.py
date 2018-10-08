@@ -9,10 +9,10 @@ class UDPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         data = self.request[0] #.strip()
         usingSocket = self.request[1]
-        print("{}:{}@CMUDP wrote: ".format(self.client_address[0],self.client_address[1]))
-        # print(data)
-        print("received by : {}:{}".format(usingSocket.getsockname()[0],usingSocket.getsockname()[1])) #gets my own address/port pair
-        print()
+        # print("{}:{}@CMUDP wrote: ".format(self.client_address[0],self.client_address[1]))
+        # # print(data)
+        # print("received by : {}:{}".format(usingSocket.getsockname()[0],usingSocket.getsockname()[1])) #gets my own address/port pair
+        # print()
         unpacked = None
 
         for unpack in [packers.IntroMsg.ungenMsg(data), packers.MsgMsg.ungenMsg(data)]:
@@ -34,11 +34,11 @@ class UDPHandler(socketserver.BaseRequestHandler):
 class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(consts.RECV_SIZE)# .strip()
-        print("{}:{}@CMTCP wrote: ".format(self.client_address[0],self.client_address[1]))
-        print(self.data)
-        print("received by : {}:{}".format(self.request.getsockname()[0],self.request.getsockname()[1])) #gets my own address/port pair
-        print()
-        print("~?~?~?~?~?~?~?~~?~?~??~?~?~?~~??~?~?~?~?~~??~~?~?~?")
+        # print("{}:{}@CMTCP wrote: ".format(self.client_address[0],self.client_address[1]))
+        # print(self.data)
+        # print("received by : {}:{}".format(self.request.getsockname()[0],self.request.getsockname()[1])) #gets my own address/port pair
+        # print()
+        # print("~?~?~?~?~?~?~?~~?~?~??~?~?~?~~??~?~?~?~?~~??~~?~?~?")
         for unpack in [packers.TransMsg.ungenMsg(self.data),packers.VerifyMsg.ungenMsg(self.data)]:
             unpacked = unpack # should only recieve TransMsg 
             print(unpacked)
@@ -49,7 +49,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     rootNode.holdMsgs(unpacked.signature)
                     break # we can leave the loop now
                 if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CH and unpacked.keySender.public_numbers().n == rootNode.CH.pubKey.public_numbers().n:
-                    print("verification response received -- excuting handler now!")
+                    print("verification response received -- excuting handler now")
                     rootNode.holdMsgs(unpacked.signature,unpacked.result)
                     break # we can leave the loop now
                 else:
@@ -95,7 +95,7 @@ class ClusterMember(peerBase.commonNode):
             self.holdMsgs = msgEvent.MsgEvent()
             self.hasDownload = False
             super().hold()
-            print("CM serving")
+            print("CM is up")
 
 
         def addDownloadFunc(self, downloadFunc):
@@ -108,7 +108,7 @@ class ClusterMember(peerBase.commonNode):
         # sending an ack is very simple -- assumption is that acks always go to a CH
         def ackCH(self,ackType):
             if self.CH.exists:
-                print("sending ACK to port: " + str(self.CH.port) + " and ip: "+ self.CH.IP)
+                # print("sending ACK to port: " + str(self.CH.port) + " and ip: "+ self.CH.IP)
                 msg = packers.AckMsg(consts.TYPE_CM,self.IP,self.SSERVPORT,ackType,self.pubKey).genMsg()
                 self.sendCH(msg)
             else:

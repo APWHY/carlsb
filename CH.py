@@ -45,7 +45,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     rootNode.sendTransaction(unpack.key,unpack.signature) 
                     break
                 if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CM:
-                    print("|||||||||||||||||||||||||||||||||||||||||||||||")
+                    print("-------------------------------------------------")
                     rootNode.verifyTransaction(unpacked.keyTransSender,unpacked.keySender,unpacked.signature)               
                 else:
                     pass # add other stuff later

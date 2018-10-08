@@ -1,6 +1,6 @@
 import CM
 import time, urllib.request
-from common import handlers, cryptostuff,utils
+from common import cryptostuff,utils
 
 
 class Car(CM.ClusterMember):
@@ -40,6 +40,3 @@ if __name__ == "__main__":
     test.addDownloadFunc(test.checkChain)
     time.sleep(300)
 
-
-
-OEM_IP = "0.0.0.0"

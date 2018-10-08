@@ -33,20 +33,22 @@ class UDPHandler(socketserver.BaseRequestHandler):
 # Handles TCP requests for a CM -- should only be receiving acknowledgment TRANS_MSGs from CHs
 class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
-        self.data = self.request.recv(1024).strip()
+        self.data = self.request.recv(1024)# .strip()
         print("{}:{}@CMTCP wrote: ".format(self.client_address[0],self.client_address[1]))
         print(self.data)
         print("received by : {}:{}".format(self.request.getsockname()[0],self.request.getsockname()[1])) #gets my own address/port pair
         print()
         for unpack in [packers.TransMsg.ungenMsg(self.data),packers.VerifyMsg.ungenMsg(self.data)]:
             unpacked = unpack # should only recieve TransMsg 
+            print(unpacked)
             if unpacked != None: # we have recieved a msg
                 rootNode = self.server.CM
-                if unpacked.msgType == consts.MSG_TRANS and unpacked.nodeType == consts.TYPE_CH and unpacked.key == rootNode.CH.IP: #sanity check -- might need code for more than IntroMsg and we only care about IntroMsg from CHs...who should be the only ones sending them
-                    rootNode.holdMsgs()
+                if unpacked.msgType == consts.MSG_TRANS and unpacked.nodeType == consts.TYPE_CH and unpacked.key.public_numbers().n == rootNode.CH.pubKey.public_numbers().n: #sanity check -- might need code for more than IntroMsg and we only care about IntroMsg from CHs...who should be the only ones sending them
+                    print("confirmation of transaction received")
+                    rootNode.holdMsgs(unpacked.signature)
                     break # we can leave the loop now
-                if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CH and unpacked.key == rootNode.CH.IP:
-                    rootNode.holdMsgs(unpacked.result)
+                if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CH and unpacked.key.public_numbers().n == rootNode.CH.pubKey.public_numbers().n:
+                    rootNode.holdMsgs(unpacked.signature,unpacked.result)
                     break # we can leave the loop now
                 else:
                     pass # for now we pass but for future message types we handle them here

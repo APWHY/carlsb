@@ -38,6 +38,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
         print(self.data)
         print("received by : {}:{}".format(self.request.getsockname()[0],self.request.getsockname()[1])) #gets my own address/port pair
         print()
+        print("~?~?~?~?~?~?~?~~?~?~??~?~?~?~~??~?~?~?~?~~??~~?~?~?")
         for unpack in [packers.TransMsg.ungenMsg(self.data),packers.VerifyMsg.ungenMsg(self.data)]:
             unpacked = unpack # should only recieve TransMsg 
             print(unpacked)
@@ -47,7 +48,8 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     print("confirmation of transaction received")
                     rootNode.holdMsgs(unpacked.signature)
                     break # we can leave the loop now
-                if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CH and unpacked.key.public_numbers().n == rootNode.CH.pubKey.public_numbers().n:
+                if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CH and unpacked.keySender.public_numbers().n == rootNode.CH.pubKey.public_numbers().n:
+                    print("verification response received -- excuting handler now!")
                     rootNode.holdMsgs(unpacked.signature,unpacked.result)
                     break # we can leave the loop now
                 else:

@@ -1,6 +1,6 @@
 import CM
 import time, urllib.request
-from common import handlers, cryptostuff
+from common import handlers, cryptostuff,utils
 
 
 class Car(CM.ClusterMember):
@@ -35,6 +35,7 @@ class Car(CM.ClusterMember):
 
 
 if __name__ == "__main__":
+    print("IP is: " + utils.get_ip())
     test = Car(CM.UDPHandler,CM.TCPHandler)
     test.addDownloadFunc(test.checkChain)
     time.sleep(300)

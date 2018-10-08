@@ -34,6 +34,7 @@ class commonNode():
 		socketserver.UDPServer.allow_reuse_address = True
 		self.broadcastServer = socketserver.UDPServer((self.IP,self.BSERVPORT), broadcastHandler)
 
+
 	
 
 	def sendTCP(self, msg, ip, port):
@@ -50,6 +51,7 @@ class commonNode():
 
 		soc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  
 		soc.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  
+		soc.bind((self.IP,0))
 		soc.sendto(msg, (('<broadcast>',consts.BROADCAST_PORT)))
  
 

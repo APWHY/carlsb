@@ -101,12 +101,11 @@ class TransMsg:
     @staticmethod
     def ungenMsg(data):
         print(len(data))
-        opened = TransMsg.fmt.unpack(data)
-        # try:
-        #     opened = TransMsg.fmt.unpack(data)
-        # except struct.error:
-        #     print("error!!!")
-        #     return None
+        # opened = TransMsg.fmt.unpack(data)
+        try:
+            opened = TransMsg.fmt.unpack(data)
+        except struct.error:
+            return None
         if opened[0] == TransMsg.msgType:
             raw = TransMsg.fmt.unpack(data)
             retVal = TransMsg(*raw[1:])

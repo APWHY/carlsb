@@ -6,9 +6,21 @@ import socket
 # ip = "192.168.0.14"
 # ip = "127.0.0.1"
 
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
 soc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  
 soc.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  
-# soc.bind((ip,12346))
+soc.bind((get_ip(),12346))
 # soc.connect((ip, 12345))
 
 clients_input = input("What you want to broadcast, my dear client?\n")  
@@ -17,10 +29,10 @@ clients_input = input("What you want to broadcast, my dear client?\n")
 # soc.send(clients_input.encode("utf8")) # we must encode the string to bytes  
 # soc.sendto(clients_input.encode("utf8"), (('192.168.0.255',11111)))
 soc.sendto(clients_input.encode("utf8"), (('<broadcast>',28196)))
-result_bytes, blah = soc.recvfrom(4096) # the number means how the response can be in bytes  
-result_string = result_bytes.decode("utf8") # the return will be in bytes, so decode
+# result_bytes, blah = soc.recvfrom(4096) # the number means how the response can be in bytes  
+# result_string = result_bytes.decode("utf8") # the return will be in bytes, so decode
 
-print("Result from server is {}".format(result_string))  
+# print("Result from server is {}".format(result_string))  
 
 
 

@@ -9,10 +9,10 @@ class UDPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         data = self.request[0]#.strip()
         usingSocket = self.request[1]
-        print("{}:{}@CHUDP wrote: ".format(self.client_address[0],self.client_address[1]))
-        print(data)
-        print("received by : {}:{}".format(usingSocket.getsockname()[0],usingSocket.getsockname()[1])) #gets my own address/port pair
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        # print("{}:{}@CHUDP wrote: ".format(self.client_address[0],self.client_address[1]))
+        # print(data)
+        # print("received by : {}:{}".format(usingSocket.getsockname()[0],usingSocket.getsockname()[1])) #gets my own address/port pair
+        # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         unpacked = None
 
         for unpack in []: # stub code for future work
@@ -24,11 +24,11 @@ class UDPHandler(socketserver.BaseRequestHandler):
 class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024) # .strip()
-        print(len(self.data))
-        print("{}:{}@CMTCP wrote: ".format(self.client_address[0],self.client_address[1]))
-        print(self.data)
-        print("received by : {}:{}".format(self.request.getsockname()[0],self.request.getsockname()[1])) #gets my own address/port pair
-        print()
+        # print(len(self.data))
+        # print("{}:{}@CMTCP wrote: ".format(self.client_address[0],self.client_address[1]))
+        # print(self.data)
+        # print("received by : {}:{}".format(self.request.getsockname()[0],self.request.getsockname()[1])) #gets my own address/port pair
+        # print()
         unpacked = None
 
         for unpack in [packers.AckMsg.ungenMsg(self.data),packers.TransMsg.ungenMsg(self.data),packers.VerifyMsg.ungenMsg(self.data)]:
@@ -36,7 +36,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             if unpacked != None:
                 rootNode = self.server.CH
                 if unpacked.msgType == consts.MSG_ACK and unpacked.nodeType == consts.TYPE_CM:
-                    print("adding new CM")
+                    # print("adding new CM")
                     rootNode.lock.acquire() # Critical region
                     rootNode.newCM(unpacked.IP,unpacked.port,unpacked.key)
                     rootNode.lock.release() # End critical region
@@ -86,9 +86,9 @@ class ClusterHead(peerBase.commonNode):
     # Adds a new CM to the list of CM's the CH knows exists if it isn't already on the list
     # TODO clean out the list every once in a while
     def newCM(self, ip,port,pubKey):
-        print("trying to add new CM")
+        # print("trying to add new CM")
         if not self.checkCM(pubKey)[0]:
-            print("actually adding new cm")
+            # print("actually adding new cm")
             self.CMs.append(ClusterMemberRep(ip,port,pubKey))
 
     def checkCM(self,pubKey):

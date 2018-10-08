@@ -26,7 +26,7 @@ class Car(CM.ClusterMember):
                 print("message is verified properly!")
                 return True
             else:
-                print("something went wrong with checking the message...")
+                print("something went wrong with checking the message....n")
                 return False
         else:
             print("signature not verified on chain")

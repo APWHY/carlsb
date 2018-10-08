@@ -42,7 +42,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     rootNode.lock.release() # End critical region
                     break
                 if unpacked.msgType == consts.MSG_TRANS and unpacked.nodeType == consts.TYPE_CM and rootNode.checkCM(unpack.key):
-                    rootNode.sendTransaction() 
+                    rootNode.sendTransaction(unpack.key,unpack.signature) 
                     break
                 else:
                     pass # add other stuff later

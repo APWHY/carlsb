@@ -12,36 +12,36 @@ contract_source_code = '''
 pragma solidity ^0.4.7;
  
 contract Factory {
-    mapping(string => address) chain;
+    mapping(bytes => address) chain;
  
     constructor() public {
    
     }
  
-    function addMember(string pubKey, string signature) public {
+    function addMember(bytes pubKey, bytes signature) public {
         if (chain[pubKey] > 0) return;
         address newAddress = new Individual(signature);
         chain[pubKey] = newAddress;
  
     }
  
-    function getMember(string pubKey) view public returns (address) {
+    function getMember(bytes pubKey) view public returns (address) {
         return chain[pubKey];
     }
 }
  
 contract Individual {
-    mapping(string => bool) chain;
+    mapping(bytes => bool) chain;
  
-    constructor(string signature) public {
+    constructor(bytes signature) public {
         chain[signature] = true;
     }
  
-    function addSignature(string signature) public {
+    function addSignature(bytes signature) public {
         chain[signature] = true;
     }
  
-    function checkSignature(string signature) view public returns (bool){
+    function checkSignature(bytes signature) view public returns (bool){
         return chain[signature];
     }
 }

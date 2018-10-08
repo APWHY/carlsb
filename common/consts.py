@@ -53,6 +53,12 @@ MSG_MSG_FMT = 'ii15si256s451s' # this is only to help for demonstration purposes
 # port that the CH will serve all files on
 HTTP_PORT = 8088
 
+# encodings from byte to str for signatures and keys
+# sig needs to be ascii because utf-8 is invalid
+# utf-8 is used for keys because it worked when I tried it and I don't want to change it back
+ENCODE_SIG = "ascii"
+ENCODE_KEY = "utf-8"
+
 
 if __name__ == "__main__":
     print("hello world")

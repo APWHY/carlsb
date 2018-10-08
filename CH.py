@@ -7,13 +7,13 @@ import socketserver, socket,_thread, collections
 # For now we assume that CHs are the ones that advertise themselves and a CM is always going to be in the vicinity of a CH
 class UDPHandler(socketserver.BaseRequestHandler):
     def handle(self):
-        data = self.request[0].strip()
+        data = self.request[0]#.strip()
         _ = data #delete this TODO
         usingSocket = self.request[1]
         print("{}:{}@CHUDP wrote: ".format(self.client_address[0],self.client_address[1]))
-        # print(data)
+        print(data)
         print("received by : {}:{}".format(usingSocket.getsockname()[0],usingSocket.getsockname()[1])) #gets my own address/port pair
-        print()
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         unpacked = None
 
         for unpack in []: # stub code for future work
@@ -84,12 +84,14 @@ class ClusterHead(peerBase.commonNode):
     # Adds a new CM to the list of CM's the CH knows exists if it isn't already on the list
     # TODO clean out the list every once in a while
     def newCM(self, ip,port,pubKey):
-        if self.checkCM(pubKey)[0]:
+        print("trying to add new CM")
+        if not self.checkCM(pubKey)[0]:
+            print("actually adding new cm")
             self.CMs.append(ClusterMemberRep(ip,port,pubKey))
 
     def checkCM(self,pubKey):
         for d in self.CMs:
-            if d.pubKey == pubKey:
+            if d.pubKey.public_numbers().n == pubKey.public_numbers().n:
                 return True, d
         return False, None
 
@@ -100,27 +102,45 @@ class ClusterHead(peerBase.commonNode):
 
     def sendTransaction(self, pubKey, sig):
         check,sender = self.checkCM(pubKey)
+        print("-------------------")
+        print("result of check is:")
+        print(check)
+        print(len(self.CMs))
         if not check:
-            import json
+
             for d in self.CMs:
-                print(json.dumps(d))
-            print(pubKey,sig)
+                print("in CMs")
+                print(d.pubKey.public_numbers())
+            print(pubKey.public_numbers(),sig)
             raise AssertionError("Attempt to send transaction from unregistered CM")
 
         print("appending CM transaction to blockchain...")
-        if sender.address == "":
-            sender.address = self.manager.addNode(pubKey,sig)
+        # I store the public Key as string because I ran into problems with dynamic byte arrays in dicts for solidity
+        # That may have been due to another issue which has since been resolved since this decision was made fairly early on
+        pubKeyBytes = cryptostuff.keyToBytes(pubKey)
+        print(pubKeyBytes)
+        # print(sig)
+        # sigStr = sig.decode(consts.ENCODE_SIG)
+        if sender.contract == "":
+            sender.contract = self.manager.addNode(pubKeyBytes,sig)
         else:
-            self.manager.checkMsg(pubKey,sig)
+            self.manager.checkMsg(pubKeyBytes,sig)
 
         print("CM transaction appeneded to blockchain, notifying CM now...")
-        super().sendTCP(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg(),sender.ip,sender.port)
+        print(packers.TransMsg.ungenMsg(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg()))
+        print(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg())
+        print(len(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg()))
+        super().sendTCP(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg(),sender.IP,sender.port)
 
     # only checks if the source of pubKey has actually put up sig on the blockchain
     # verification of signature with message should be done elsewhere
     def verifyTransaction(self, pubKey, sig):
-        sender = self.manager.getNode(pubKey)
+        check,sender = self.checkCM(pubKey)
+        if check:
+            contractAddr = sender.address
+        else:
+            contractAddr = self.manager.getNode(cryptostuff.keyToBytes(pubKey))
         if sender == 0:
             return False
-        return self.manager.checkMsg(sender, sig)
+        return self.manager.checkMsg(contractAddr, sig)
 

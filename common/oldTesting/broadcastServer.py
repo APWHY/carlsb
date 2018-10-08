@@ -65,6 +65,7 @@ def start_server():
 
     try:
         ip = '0.0.0.0'
+        # ip = "192.168.43.177"
         # ip = "192.168.0.14"
         # ip = "127.0.0.1"
         soc.bind((ip, 28196)) # match this with BROADCAST_PORT in common.consts
@@ -73,6 +74,9 @@ def start_server():
         import sys
         print('Bind failed. Error : ' + str(sys.exc_info()) + " msg: " + msg)
         sys.exit()
+
+    print(soc.getsockname())
+
 
     #Start listening on socket
     # soc.listen(10)

@@ -130,6 +130,29 @@ class ContractManager():
     def getNode(self, pubKey):
         return self.factory.functions.getMember(pubKey).call()
 
+# Used for for when you can't set up a blockchain and stil want to test other parts of the network
+# Literally does nothing except feed you back what you gave or returns True
+class ContractManagerSpoof():
+    def __init__(self):
+        pass
+
+    # given a contract address and the signature of the message sent, will add it to the chain
+    def postMsg(self, addr, sig):    
+        pass
+
+    # given a public key and the signature of message sent, will first create a new contract instance for that node
+    # then add the message sent to the blockchain
+    def addNode(self, pubkey, sig):
+        pass
+
+    # checks if node with contract at addr has sent a message with signature sig
+    def checkMsg(self, addr, sig):
+        return True
+
+    # given a public key will try to return the address of the contract for that node
+    def getNode(self, pubKey):
+        return pubKey
+
 
 if __name__ == "__main__":
 

@@ -14,27 +14,26 @@ This readme will demonstrate how to set up a private Ethereum network and connec
 * Python 3.6
 * The `cryptography` library (https://cryptography.io/en/latest/)
     available by running `pip install cryptography` on windows. On other systems follow steps listed here: https://cryptography.io/en/latest/installation/
+    * Raspberry Pi users might additionally need to install `packaging` using `pip` or `pip3`
 
 ---
-If using Ethereum as an attached blockchain, then these are required:
+If using Ethereum as an attached blockchain, then these are required (for Cluster Heads):
 * `geth` (go-ethereum)
 * `web3.py` (via `pip` -- our python interface for interacting with `geth`)
 * A 64-bit environment to mine on
 * `solc` (solidity compiler)
 * `py-solc` (python library to call solc)
 
-# Setup (cluster member)
+# Setup (Cluster Member)
  Simply clone the project and play around with the examples
 
-# Setup (cluster head)
- Install `geth` (and `golang` if you don't already have it). Again, make sure your device is 64-bit or it will not be able to mine transactions into the network.
+# Setup (Cluster Head)
+ Install `geth` (and `golang` if you don't already have it) along with other dependencies required for an Ethereum implementation. If using your own then you can ignore this.
 
- After creating a private network (using your custom `genesis.json` file), look inside your `datadir` for a file called `geth.ipc`. This is the path that you will need to enter into `<insert location here>`.  
+ After creating a private network using your custom `genesis.json` file (turn down the difficulty!), look inside your `datadir` for a file called `geth.ipc`. This is the path that you will need to enter into `ipcLocation` in `contractCaller.py`.  
 
- More stuff....
 
  # Things not yet implemented!
  * CM's and CH's don't forget the other nodes that they are connected to (there is no ttl system anywhere in the code)
  * KUI intervals have not been implemented (although the relevante packer has been written)
  * Consider rewriting packers.py so it becomes a little more flexible
- * Write wrappers for cryptostuff.verifyMsg and cryptostuff.signMsg in CM and CH so we don't need to import cryptostuff in demo-level code

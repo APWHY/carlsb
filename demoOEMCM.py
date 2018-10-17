@@ -5,7 +5,7 @@ from simplehttp import simpleServer
 from threading import Thread
 
 
-class demoCH(CM.ClusterMember):
+class demoOEM(CM.ClusterMember):
 
     def __init__(self,*args, **kwargs):
         super().__init__(*args,**kwargs) #do standard CH stuff
@@ -33,7 +33,7 @@ class demoCH(CM.ClusterMember):
 
 
 if __name__ == "__main__":
-    oem = demoCH(CM.UDPHandler,CM.TCPHandler)
+    oem = demoOEM(CM.UDPHandler,CM.TCPHandler)
     print("waiting for OEM to acquire CH")
     while not oem.CH.exists: # lazy way of doing things but it works for now
         time.sleep(1)

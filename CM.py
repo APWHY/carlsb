@@ -8,9 +8,9 @@ from threading import Thread
 class UDPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         data = self.request[0] #.strip()
-        usingSocket = self.request[1]
+        # usingSocket = self.request[1]
         # print("{}:{}@CMUDP wrote: ".format(self.client_address[0],self.client_address[1]))
-        # # print(data)
+        # print(data)
         # print("received by : {}:{}".format(usingSocket.getsockname()[0],usingSocket.getsockname()[1])) #gets my own address/port pair
         # print()
         unpacked = None
@@ -21,9 +21,10 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 rootNode = self.server.CM
                 if unpacked.msgType == consts.MSG_INTRO and unpacked.nodeType == consts.TYPE_CH: #sanity check -- might need code for more than IntroMsg and we only care about IntroMsg from CHs...who should be the only ones sending them
                     rootNode.lock.acquire() # Critical region
-                    rootNode.CH.populate(unpacked.IP,unpacked.port,unpacked.key)
+                    filled = rootNode.CH.populate(unpacked.IP,unpacked.port,unpacked.key)
                     rootNode.lock.release() # End critical region
-                    rootNode.ackCH(unpacked.msgType)
+                    if not filled: #only bother sending ack if we haven't already sent one
+                        rootNode.ackCH(unpacked.msgType)
                     break #we can leave the for loop now
                 if unpacked.msgType == consts.MSG_MSG and unpacked.nodeType == consts.TYPE_CM and rootNode.hasDownload:
                         rootNode.downloadFunc(unpacked.IP,unpacked.port,unpacked.signature,unpacked.key)
@@ -45,11 +46,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
             if unpacked != None: # we have recieved a msg
                 rootNode = self.server.CM
                 if unpacked.msgType == consts.MSG_TRANS and unpacked.nodeType == consts.TYPE_CH and unpacked.key.public_numbers().n == rootNode.CH.pubKey.public_numbers().n: #sanity check -- might need code for more than IntroMsg and we only care about IntroMsg from CHs...who should be the only ones sending them
-                    print("confirmation of transaction received")
+                    # print("confirmation of transaction received")
                     rootNode.holdMsgs(unpacked.signature)
                     break # we can leave the loop now
                 if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CH and unpacked.keySender.public_numbers().n == rootNode.CH.pubKey.public_numbers().n:
-                    print("verification response received -- excuting handler now")
+                    # print("verification response received -- excuting handler now")
                     rootNode.holdMsgs(unpacked.signature,unpacked.result)
                     break # we can leave the loop now
                 else:
@@ -64,10 +65,12 @@ class ClusterHeadRep():
         self.exists = False
     
     def populate(self,ip,port,pubKey):
+        res = self.exists
         self.exists = True
         self.IP = ip
         self.port = port 
         self.pubKey = pubKey
+        return res
         #perhaps have a ttl for this but whatever
 
     def depopulate(self):
@@ -123,7 +126,7 @@ class ClusterMember(peerBase.commonNode):
         def sendTransaction(self, handler, sig):
             if self.CH.exists:
                 self.holdMsgs[sig] = handler
-                print("sending transaction off to CH to be appended to blockchain")
+                # print("sending transaction off to CH to be appended to blockchain")
                 self.sendCH(packers.TransMsg(consts.TYPE_CM,sig,self.pubKey).genMsg())
             else:
                 raise CHDoesNotExist("This CM is not connected to a CH and cannot execute this function as a result")
@@ -137,7 +140,7 @@ class ClusterMember(peerBase.commonNode):
         def verifyTransaction(self, handler, pubKey, sig):
             if self.CH.exists:
                 self.holdMsgs[sig] = handler
-                print("checking signature is in blockchain")
+                # print("checking signature is in blockchain")
                 print(len(packers.VerifyMsg(consts.TYPE_CM,sig,pubKey,self.pubKey,False).genMsg()))
                 self.sendCH(packers.VerifyMsg(consts.TYPE_CM,sig,pubKey,self.pubKey,False).genMsg())
             else:

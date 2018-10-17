@@ -45,7 +45,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     rootNode.sendTransaction(unpack.key,unpack.signature) 
                     break
                 if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CM:
-                    print("-------------------------------------------------")
+                    # print("-------------------------------------------------")
                     rootNode.verifyTransaction(unpacked.keyTransSender,unpacked.keySender,unpacked.signature)               
                 else:
                     pass # add other stuff later
@@ -61,11 +61,13 @@ class ClusterMemberRep():
 
 class ClusterHead(peerBase.commonNode):
      
-    def __init__(self,*args,**kwargs):
+    def __init__(self,*args,spoofContract=False,**kwargs):
 
         super().__init__(*args,**kwargs)  # standard commonNode setup
-
-        self.manager  = contractCaller.ContractManager()
+        if spoofContract:
+            self.manager = contractCaller.ContractManagerSpoof()
+        else:
+            self.manager  = contractCaller.ContractManager()
         
             
 
@@ -81,7 +83,7 @@ class ClusterHead(peerBase.commonNode):
         super().hold()
         self.rebroadcaster.start()
         
-        print("CH serving")
+        # print("CH serving")
 
     # Adds a new CM to the list of CM's the CH knows exists if it isn't already on the list
     # TODO clean out the list every once in a while
@@ -99,49 +101,49 @@ class ClusterHead(peerBase.commonNode):
 
     # helper function -- should be called periodically
     def broadcastIntro(self):
-        print("CH sending broadcast...")
+        # print("CH sending broadcast...")
         super().broadcast(packers.IntroMsg(consts.TYPE_CH,self.IP,self.SSERVPORT,self.pubKey).genMsg())
 
     def sendTransaction(self, pubKey, sig):
         check,sender = self.checkCM(pubKey)
-        print("-------------------")
-        print("result of check is:")
-        print(check)
-        print(len(self.CMs))
+        # print("-------------------")
+        # print("result of check is:")
+        # print(check)
+        # print(len(self.CMs))
         if not check:
 
             for d in self.CMs:
-                print("in CMs")
+                # print("in CMs")
                 print(d.pubKey.public_numbers())
             print(pubKey.public_numbers(),sig)
             raise AssertionError("Attempt to send transaction from unregistered CM")
 
-        print("appending CM transaction to blockchain...")
+        # print("appending CM transaction to blockchain...")
         # I store the public Key as string because I ran into problems with dynamic byte arrays in dicts for solidity
         # That may have been due to another issue which has since been resolved since this decision was made fairly early on
         pubKeyBytes = cryptostuff.keyToBytes(pubKey)
-        print(pubKeyBytes)
+        # print(pubKeyBytes)
         # print(sig)
         # sigStr = sig.decode(consts.ENCODE_SIG)
         if sender.contract == "":
-            print("adding node")
+            # print("adding node")
             self.manager.addNode(pubKeyBytes,sig)
             sender.contract = self.manager.getNode(pubKeyBytes)
         else:
-            print("repeat Customer")
+            # print("repeat Customer")
             self.manager.postMsg(sender.contract,sig)
             
         self.oldSig = sig    
         self.oldKey = pubKey
 
-        print(sender.contract)
+        # print(sender.contract)
 
         self.manager.checkMsg(sender.contract,sig)
 
-        print("CM transaction appeneded to blockchain, notifying CM now...")
-        print(packers.TransMsg.ungenMsg(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg()))
-        print(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg())
-        print(len(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg()))
+        # print("CM transaction appeneded to blockchain, notifying CM now...")
+        # print(packers.TransMsg.ungenMsg(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg()))
+        # print(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg())
+        # print(len(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg()))
         super().sendTCP(packers.TransMsg(consts.TYPE_CH,sig,self.pubKey).genMsg(),sender.IP,sender.port)
 
     # only checks if the source of pubKey has actually put up sig on the blockchain
@@ -151,7 +153,7 @@ class ClusterHead(peerBase.commonNode):
         if not check:
             raise AssertionError("This user doesn't exist")
 
-        print("received verify -- checking on chain....")        
+        # print("received verify -- checking on chain....")        
         check,transSender = self.checkCM(pubKeyTransSender)
         if check:
             contractAddr = transSender.contract
@@ -160,21 +162,21 @@ class ClusterHead(peerBase.commonNode):
         if sender == 0:
             res = False
 
-        print(sig)
-        print(self.oldSig)
-        print(pubKeyTransSender.public_numbers())
-        print(self.oldKey.public_numbers())
+        # print(sig)
+        # print(self.oldSig)
+        # print(pubKeyTransSender.public_numbers())
+        # print(self.oldKey.public_numbers())
 
         assert sig == self.oldSig
         assert pubKeyTransSender.public_numbers().n == self.oldKey.public_numbers().n
  
         res =  self.manager.checkMsg(contractAddr, sig)
 
-        print(res)
+        # print(res)
 
         msg = packers.VerifyMsg(consts.TYPE_CH,sig,pubKeyTransSender,self.pubKey,res).genMsg()
-        print(sender.IP,sender.port)
-        print("transaction verification attempted, responding to car")
+        # print(sender.IP,sender.port)
+        # print("transaction verification attempted, responding to car")
 
         super().sendTCP(msg,sender.IP,sender.port)
 

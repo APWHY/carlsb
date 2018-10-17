@@ -5,18 +5,18 @@ from simplehttp import simpleServer
 from threading import Thread
 
 
-class DemoCH(CH.ClusterHead):
+class SpoofCH(CH.ClusterHead):
 
 	def __init__(self,*args, **kwargs):
-		super().__init__(*args,**kwargs) #do standard CH stuff
-		print("DemoCH serving")
+		super().__init__(*args,**kwargs,spoofContract=True) #do standard CH stuff
+		print("SpoofCH serving")
 		super().broadcastIntro()
 
 
 
 
-
 if __name__ == "__main__":
-	head = DemoCH(CH.UDPHandler,CH.TCPHandler)
+	head = SpoofCH(CH.UDPHandler,CH.TCPHandler)
+	print(head.BSERVPORT,head.SSERVPORT,head.IP)
 	time.sleep(300)
 

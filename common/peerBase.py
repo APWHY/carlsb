@@ -22,7 +22,6 @@ class commonNode():
 	def __init__(self, broadcastHandler, streamHandler):
 		# we get our own ip
 		self.IP = utils.get_ip()
-		print(broadcastHandler,streamHandler)
 		# set up our streaming server
 		self.streamServer = socketserver.TCPServer((self.IP,0), streamHandler )
 		# now we can get the port our streaming server is bound to
@@ -50,7 +49,7 @@ class commonNode():
 		# when a node receives a broadcast (which should contain an address to reply to)
 		# the reply is made to that address, not on the broadcast address
 
-		print(str(len(msg)) + "is message length")
+		# print(str(len(msg)) + "is message length")
 
 		soc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  
 		soc.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  

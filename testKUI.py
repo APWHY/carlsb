@@ -1,3 +1,4 @@
+# Situation to test that CMs and CHs can update records every KUI
 import CM
 import time, socketserver, os
 from common import consts,utils,cryptostuff,packers

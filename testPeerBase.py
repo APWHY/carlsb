@@ -1,3 +1,5 @@
+# bunch of functions that test the various function calls of the commonNode class
+# You know the tests work if the file runs without crashing
 from common.peerBase import commonNode 
 from common import consts, handlers
 import socket

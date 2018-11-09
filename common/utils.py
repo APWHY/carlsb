@@ -1,18 +1,18 @@
+# Collection of helper functions and classes
+# msgEvent could probably be put in here as well, actually...
 import threading,time,socket
 
 # simple module to repeat any job every <delay> seconds
 # The scheduling library does this really well but is pretty overkill -- if you need 
 # more functionality in the future consider swapping over to it 
 # but this is honestly enough for most of the things that are required
-
-
 class job():
     def __init__(self, target, delay):
         self.target = target
         self.delay = delay
         self.running = False
 
-    # start the repeatable job
+    # start the repeatable job --- YOUR JOB WILL NEVER RUN IF THIS FUNCTION IS NOT CALLED
     def start(self):
         self.running = True
         self.repeater = threading.Thread(target=self.rerun, daemon=True).start()
@@ -29,7 +29,8 @@ class job():
         self.running = False #boolean assignment is atomic so we don't have anything to worry aobut
 
 
-
+# The only way I've managed to get my own IP
+# There are easier ways but they are OS specific whereas this one always works (but is a little slower)
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:

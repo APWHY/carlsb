@@ -1,8 +1,11 @@
+# part of the demo. Run with demoCH and demoOEMCM.
 import CM
 import time, urllib.request
 from common import cryptostuff,utils
 
-
+# The Car's role is to receive a message from the OEM
+# It is notified of this message's existence through a seperate message (in this case it is actually a MSG_MSG msg)
+# Then checks with the CH whether or not it is legitimate
 class Car(CM.ClusterMember):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)

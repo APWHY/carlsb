@@ -1,3 +1,5 @@
+# super basic ping sender
+# Used to check broadcasts are working properly on CHs and CMs
 import CM
 import time, urllib.request
 from common import handlers, cryptostuff

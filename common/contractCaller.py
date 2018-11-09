@@ -1,3 +1,11 @@
+# This file is responsible for interfacing with the blockchain ledger that speedyChain uses
+# If you want to change the ledger (say, from Ethereum to LSB), you will need to implement 
+# a class that has the same interface as the ContractManager class
+# An easy starting point would be the ContractManagerSpoof class, which is just stub functions
+
+# This is the only file that is part of the core project with constants defined inside the file itself
+# (instead of in consts.py). This is because the constants here are tied to the ledger of choice
+
 import web3
 import json
 import os
@@ -6,7 +14,11 @@ from web3 import Web3
 from solc import compile_source
 from web3.contract import ConciseContract
 
-
+# CONSTANTS
+ipcLocation = "../chain/easy/geth.ipc" # loaction of the geth instance's IPC handler
+accPassword = "hancott" # I don't know how to make a password-less account 
+                        # so this has a password
+filename = './factory.contract'
 # Solidity source code
 contract_source_code = '''
 pragma solidity ^0.4.7;
@@ -47,11 +59,8 @@ contract Individual {
 }
 '''
 
-ipcLocation = "../chain/easy/geth.ipc"
-accPassword = "hancott" # I don't know how to make a password-less account 
-                        # so this has a password
-filename = './factory.contract'
 
+# This class is responsible for calling the functions within the two contracts as defined above
 class ContractManager():
 
 
@@ -67,6 +76,7 @@ class ContractManager():
         self.individual_interface = self.compiled_sol['<stdin>:Individual']
 
         self.w3 = Web3(my_provider)
+        # normally account passwords could be more secure, but as Ethereum is temporary I don't think it is a big deal
         self.w3.personal.unlockAccount(self.w3.personal.listAccounts[0],accPassword,150000)
         self.w3.eth.defaultAccount = self.w3.eth.accounts[0]
         print(self.w3.personal.listAccounts[0])
@@ -111,6 +121,7 @@ class ContractManager():
 
     # given a public key and the signature of message sent, will first create a new contract instance for that node
     # then add the message sent to the blockchain
+    # will create a new Individual contract in the blockchain
     def addNode(self, pubkey, sig):
         tx_hash = self.factory.functions.addMember(pubkey,sig).transact()
         # Wait for transaction to be mined...
@@ -153,21 +164,13 @@ class ContractManagerSpoof():
     def getNode(self, pubKey):
         return pubKey
 
-
+# You can directly call this file to test if your geth instance is working correctly
 if __name__ == "__main__":
 
     compiled_sol = compile_source(contract_source_code) # Compiled source code
     
     factory_interface = compiled_sol['<stdin>:Factory']
     individual_interface = compiled_sol['<stdin>:Individual']
-    # f = open('./gg',"x")
-    # import json
-    
-    # f.write(json.dumps(compiled_sol))
-    # os._exit(0) 
-    
-    
-    # web3.py instance
     
     my_provider = Web3.IPCProvider(ipcLocation)
 
@@ -257,11 +260,3 @@ if __name__ == "__main__":
     check = defg.functions.checkSignature('holy shit').call()
     print(check)
     
-    # Display the new greeting value
-    # print('Updated contract greeting: {}'.format(
-    #     factory.functions.greet().call()
-    # ))
-    
-    # When issuing a lot of reads, try this more concise reader:
-    # reader = ConciseContract(factory)
-    # assert reader.greet() == "Nihao"

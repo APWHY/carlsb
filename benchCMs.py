@@ -1,3 +1,5 @@
+# Benchmark testing the number of CMs a single CH can handle concurrently
+# Run with demoCH or spoofCH
 import CM
 import time, sys,timeit , _thread
 from threading import Thread
@@ -15,13 +17,12 @@ class benchCMs(CM.ClusterMember):
         self.id = id
         self.httpIP = utils.get_ip()
         self.lock = _thread.allocate_lock() # to stop sendMsg from clashing with itself
-        # print(id,"serving")
+
 
     def sendMsg(self, handler):
         self.lock.acquire()
         self.msgSig = cryptostuff.signMsg(self.privateKey,self.default_msg)
         self.sendTransaction(partial(handler,self.id),self.msgSig)
-        # print("message signed, sending transaction...")
 
 class Counter():
     count = []
@@ -30,7 +31,6 @@ class Counter():
         self.max = max
     def inc(self,i):
         self.count.append(i)
-        # print(len(self.count))
         if len(self.count) == self.max:
             timeEnd = time.clock()
             self.timeStop(timeEnd)
@@ -46,9 +46,7 @@ def test(spammers, max):
     print(len(spammers))
     for s in spammers:
         Thread(target=s.sendMsg, daemon=True, args=(count.inc,)).start()
-        # time.sleep(1)
 
-    # print("waiting for completion")
     time.sleep(500)
 
 
@@ -64,13 +62,12 @@ if __name__ == "__main__":
     start = time.clock()
     for i in range(1,10):
         spammers.append(benchCMs(i,CM.UDPHandler,CM.TCPHandler))
-        # time.sleep(.1)
+
 
 
     for s in spammers:
         while not s.CH.exists:
             time.sleep(1)
-            # print('.',s.id)
     end = time.clock()
     time.sleep(1)
     print("acquire spammers time:", end-start)

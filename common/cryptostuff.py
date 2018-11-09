@@ -5,20 +5,22 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import PublicFormat
 from cryptography.hazmat.primitives import serialization
 from cryptography.exceptions import InvalidSignature
+if __name__ != "__main__":
+    from common import consts
 
 # This file contains various helper functions that wrap the cryptography module
 # https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/ for more info
-# TODO clean up the __main__ code
+
 
 # newPrivateKey -- generates a new RSA private key for signing (and encryption, but we don't do that)
 def newPrivateKey():
     return rsa.generate_private_key(
-        public_exponent=65537, #use const here
-        key_size=2048, #use const here
+        public_exponent=consts.RSA_EXPONENT,
+        key_size=consts.RSA_KEYSIZE, 
         backend=default_backend()
     )
 
-# signMsg -- signs data with privateKey
+# signMsg -- signs data with privateKey -- returns signature
 def signMsg(privateKey,data):
     return privateKey.sign(
         data,
@@ -62,16 +64,15 @@ def keyToBytes(publicKey):
 def bytesToKey(data):
     return serialization.load_pem_public_key(data,backend=default_backend())
 
-
-
-
+# small amount of code that tests the signing and verification of the cryptography library
 if __name__ == "__main__":
+    import consts
     private_key = rsa.generate_private_key(
-        public_exponent=65537, #use const here
-        key_size=2048, #use const here
+        public_exponent=consts.RSA_EXPONENT, 
+        key_size=consts.RSA_KEYSIZE, 
         backend=default_backend()
     )
-    # private_key.private_numbers
+
 
 
 
@@ -84,17 +85,16 @@ if __name__ == "__main__":
         ),
         hashes.SHA256()
     )
-    print(signature.decode("idna"))
 
     pub = private_key.public_key()
     print(pub.public_numbers())
     print(str(keyToBytes(pub)))
-    pub.verify(signature,
+    print(pub.verify(signature,
         message,
         padding.PSS(
             mgf=padding.MGF1(hashes.SHA256()),
             salt_length=padding.PSS.MAX_LENGTH
         ),
         hashes.SHA256()
-    )
+    ))
 

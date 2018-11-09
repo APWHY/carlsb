@@ -1,10 +1,12 @@
+# part of the demo. Run with demoCH and multiple instances of demoCarCM
 import CM
 import time, socketserver, os
 from common import consts,utils,cryptostuff,packers
 from simplehttp import simpleServer
 from threading import Thread
 
-
+# The role of the OEM in the demo is to prepare a message and send it to the CH before serving it
+# It then tells the car(s) to download the message
 class demoOEM(CM.ClusterMember):
 
     def __init__(self,*args, **kwargs):
@@ -40,13 +42,3 @@ if __name__ == "__main__":
         print('.')
     oem.prepareServer()
     time.sleep(300)
-
-    # head = CH.ClusterHead(CH.UDPHandler,CH.TCPHandler)
-    # mem = CM.ClusterMember(CM.UDPHandler,CM.TCPHandler) 
-    # print(len(head.CMs))
-    # head.broadcastIntro()
-    # print(head.IP,head.BSERVPORT,head.SSERVPORT)
-    # print(mem.IP,mem.BSERVPORT,mem.SSERVPORT)
-    # time.sleep(1)
-    # print(len(head.CMs))
-    # time.sleep(10)

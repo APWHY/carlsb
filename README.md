@@ -34,6 +34,5 @@ If using Ethereum as an attached blockchain, then these are required (for Cluste
 
 
  # Things not yet implemented!
- * CM's and CH's don't forget the other nodes that they are connected to (there is no ttl system anywhere in the code)
- * KUI intervals have not been implemented (although the relevante packer has been written)
+ * CM's don't disconnect from CHs for any reason (mainly because there is no reason for them to do so yet)
  * Consider rewriting packers.py so it becomes a little more flexible

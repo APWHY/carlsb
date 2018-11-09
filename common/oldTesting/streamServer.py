@@ -1,4 +1,6 @@
-# server.py
+# simple server to receive TCP messages
+# only used as a tool for manual testing
+# once again, code copied off some tutorial
 
 def do_some_stuffs_with_input(input_string):  
     """
@@ -11,8 +13,6 @@ def do_some_stuffs_with_input(input_string):
     return input_string[::-1]
 
 def client_thread(conn, ip, port, MAX_BUFFER_SIZE = 4096):
-
-    # the input is in bytes, so decode it
     input_from_client_bytes = conn.recv(MAX_BUFFER_SIZE)
 
     # MAX_BUFFER_SIZE is how big the message can be
@@ -28,9 +28,9 @@ def client_thread(conn, ip, port, MAX_BUFFER_SIZE = 4096):
     res = do_some_stuffs_with_input(input_from_client)
     print("Result of processing {} is: {}".format(input_from_client, res))
 
-    vysl = res.encode("utf8")  # encode the result string
-    conn.sendall(vysl)  # send it to client
-    conn.close()  # close connection
+    vysl = res.encode("utf8") 
+    conn.sendall(vysl)  
+    conn.close()  
     print('Connection ' + ip + ':' + port + " ended")
 
 def start_server():
@@ -47,20 +47,16 @@ def start_server():
         # ip = "127.0.0.1"
         soc.bind((ip, 12345))
         print('Socket bind complete')
-    except socket.error as msg:
+    except socket.error:
         import sys
         print('Bind failed. Error : ' + str(sys.exc_info()))
         sys.exit()
 
-    #Start listening on socket
     soc.listen(10)
     print('Socket now listening')
 
-    # for handling task in separate jobs we need threading
     from threading import Thread
 
-    # this will make an infinite loop needed for 
-    # not reseting server for every client
     while True:
         conn, addr = soc.accept()
         ip, port = str(addr[0]), str(addr[1])

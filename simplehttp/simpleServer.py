@@ -1,3 +1,6 @@
+# This entire package is mainly for demo purposes. 
+
+
 import http.server
 import socketserver
 import os
@@ -7,7 +10,8 @@ from common import utils,consts
 
 
 
-
+# This class sets up a simple HTTP server that is set up to serve the 'example' file in the 'download' folder
+# The file will be returned on any get request.
 class SimpleFileHandler(http.server.BaseHTTPRequestHandler):
     serving = os.path.join(os.path.curdir, 'simplehttp', 'download','example') # default, can be overridden
     def do_GET(self):
@@ -21,7 +25,7 @@ class SimpleFileHandler(http.server.BaseHTTPRequestHandler):
         shutil.copyfileobj(f,self.wfile)
         f.close()
         
-        
+# simple test code        
 if __name__ == "__main__": # must run this from root dir or it won't work
 
     handler = SimpleFileHandler

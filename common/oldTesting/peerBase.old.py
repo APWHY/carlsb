@@ -1,9 +1,4 @@
-# code for a node 'peer' object
-# intended to be the main point of contact for all communications
-# packet stuff may or may not be done outside of this -- haven't decided if this is going to just handle socket communications
-# or whether or not it will do the signature stuff as well
-# I think that is unlikely
-
+# old (very broken) implementation of the commonNode class
 import socket
 from threading import Thread
 import select

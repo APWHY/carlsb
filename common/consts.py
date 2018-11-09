@@ -13,21 +13,25 @@ BROADCAST_FREQ = 2
 # Not currently used TODO
 KUI_INTERVAL = 5
 
-
+# Constants related to key generation
 RSA_EXPONENT = 65537
 RSA_KEYSIZE = 2048
-RSA_KEYBYTESIZE = 426 #is this always true?????
+RSA_KEYBYTESIZE = 426
 
+# Identifiers between CM and CH messages
 TYPE_CM = 0
 TYPE_CH = 1
 
+# Identifiers between different message types
 MSG_INTRO = 0
 MSG_TRANS = 1
 MSG_ACK = 2
 MSG_VERIFY = 3
 MSG_KUI = 4 
+# The MSG_MSG type is not needed for the network to run but makes notification easier for the demo files
+MSG_MSG = 99 
 
-MSG_MSG = 99 # this is only to help for demonstration purposes
+# Next section is message formats. For more info look in packers.py
 
 # PEM serialised public keys are just 451 chars long and IP addresses are 15 chars long
 # signatures are 256 chars long
@@ -43,14 +47,13 @@ MSG_VERIFY_FMT = 'ii256s451s451s?'
 # format is int,int,451 char array,451 char array
 MSG_KUI_FMT = 'ii451s451s'
 
-
 # format is int,int,15 char array,int,256 char array,451 char array
 MSG_MSG_FMT = 'ii15si256s451s' # this is only to help for demonstration purposes
 
 
 
 
-# port that the CH will serve all files on
+# port that a recipient expects to find a file on (for demo purposes)
 HTTP_PORT = 8088
 
 # size we set our handlers to recv on (atm needs to be more than 1167 for VerifyMsg)

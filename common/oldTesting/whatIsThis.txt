@@ -1,0 +1,4 @@
+You can safely delete this entire folder without messing up any of the other files in the project.
+
+You may be wondering why this folder exists. It is a collection of early files and tools written to help me debug socket connection issues.
+Some of these files are still somewhat useful, so I've left them in here.

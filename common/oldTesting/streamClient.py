@@ -1,7 +1,8 @@
-# client.py
+# simple client to send TCP messages from
+# only used as a tool for manual testing
 
 import socket
-# from socket import SOL_SOCKET, SO_TYPE
+
 # ip = '<broadcast>'
 myIP = socket.gethostbyname(socket.gethostname())
 print(myIP)
@@ -12,10 +13,8 @@ soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 clients_input = input("What you want to send my dear client?\n")  
 soc.connect((myIP, 54373))
 
-
-
-soc.send(clients_input.encode("utf8")) # we must encode the string to bytes  
-result_bytes = soc.recv(4096) # the number means how the response can be in bytes  
-result_string = result_bytes.decode("utf8") # the return will be in bytes, so decode
+soc.send(clients_input.encode("utf8"))
+result_bytes = soc.recv(4096)  
+result_string = result_bytes.decode("utf8") 
 
 print("Result from server is {}".format(result_string))  

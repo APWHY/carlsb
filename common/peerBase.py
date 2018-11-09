@@ -1,8 +1,5 @@
 # code for a node 'peer' object
 # intended to be the main point of contact for all communications
-# packet stuff may or may not be done outside of this -- haven't decided if this is going to just handle socket communications
-# or whether or not it will do the signature stuff as well
-# I think that is unlikely
 
 import socket
 import socketserver
@@ -15,7 +12,9 @@ import time
 
 
 
-
+# The commonNode class is intended to be the interface behind which all socket/socketserver-level
+# communications are done through. It groups the sending of TCP and UDP packets with the
+# servers responsible for recieving them
 class commonNode():
 	BSERVPORT = consts.BROADCAST_PORT 
 						
@@ -35,6 +34,7 @@ class commonNode():
 		tempSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		tempSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		tempSocket.bind(('0.0.0.0',self.BSERVPORT))
+		# We manually remake the socket so that it can handle broadcasts instead of normal udp packets
 		self.broadcastServer.socket = tempSocket
 
 	
@@ -49,7 +49,6 @@ class commonNode():
 		# when a node receives a broadcast (which should contain an address to reply to)
 		# the reply is made to that address, not on the broadcast address
 
-		# print(str(len(msg)) + "is message length")
 
 		soc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  
 		soc.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  

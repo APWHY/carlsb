@@ -18,5 +18,5 @@ class SpoofCH(CH.ClusterHead):
 if __name__ == "__main__":
 	head = SpoofCH(CH.UDPHandler,CH.TCPHandler)
 	print(head.BSERVPORT,head.SSERVPORT,head.IP)
-	time.sleep(300)
+	time.sleep(3000)
 

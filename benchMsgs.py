@@ -20,7 +20,7 @@ class benchMsgs(CM.ClusterMember):
         self.lock.acquire()
         self.msgSig = cryptostuff.signMsg(self.privateKey,self.default_msg)
         self.sendTransaction(self.inc,self.msgSig)
-        print("message signed, sending transaction...")
+        # print("message signed, sending transaction...")
 
     def inc(self):
         self.count += 1
@@ -33,7 +33,7 @@ def test(spammer, max):
     spammer.max = max
 
     while spammer.count != spammer.max:
-         print(spammer.count, spammer.max)
+        #  print(spammer.count, spammer.max)
          spammer.sendMsg()
         #  time.sleep(1)
          
@@ -55,6 +55,6 @@ if __name__ == "__main__":
         time.sleep(1)
         print('.')
     # test(spammer,100)
-    t = timeit.repeat("test(spammer,max)", setup="from __main__ import test", globals={"max":1, "spammer":spammer}, number=10,repeat=100)
+    t = timeit.repeat("test(spammer,max)", setup="from __main__ import test", globals={"max":1, "spammer":spammer}, number=1,repeat=10)
     print(t)
     print(sum(t)/float(len(t)))

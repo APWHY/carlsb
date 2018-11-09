@@ -1,5 +1,5 @@
 from common import cryptostuff,peerBase,packers,consts, utils, contractCaller
-import socketserver, socket,_thread, collections
+import socketserver, socket,_thread, collections,time
 
 # The assumption for now is that CM's only ever communicate with CH's and vice versa.
 
@@ -31,7 +31,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
         # print()
         unpacked = None
 
-        for unpack in [packers.AckMsg.ungenMsg(self.data),packers.TransMsg.ungenMsg(self.data),packers.VerifyMsg.ungenMsg(self.data)]:
+        for unpack in [packers.AckMsg.ungenMsg(self.data),packers.TransMsg.ungenMsg(self.data),packers.VerifyMsg.ungenMsg(self.data),packers.KUIMsg.ungenMsg(self.data)]:
             unpacked = unpack
             if unpacked != None:
                 rootNode = self.server.CH
@@ -47,6 +47,17 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 if unpacked.msgType == consts.MSG_VERIFY and unpacked.nodeType == consts.TYPE_CM:
                     # print("-------------------------------------------------")
                     rootNode.verifyTransaction(unpacked.keyTransSender,unpacked.keySender,unpacked.signature)               
+                if unpacked.msgType == consts.MSG_KUI and unpacked.nodeType == consts.TYPE_CM:
+                    print("kui received")
+                    rootNode.lock.acquire() # Critical region
+                    res,old = rootNode.checkCM(unpack.keyOld)
+                    if res:            
+                        print("old", old.pubKey.public_numbers())
+                        print("new", unpacked.keyNew.public_numbers())
+    
+                        rootNode.newCM(old.IP,old.port,unpacked.keyNew)
+                    rootNode.lock.release() # End critical region
+                    break
                 else:
                     pass # add other stuff later
 
@@ -57,6 +68,7 @@ class ClusterMemberRep():
         self.port = port 
         self.pubKey = pubKey
         self.contract = ""
+        self.start = time.clock()
         #perhaps have a ttl for this but whatever
 
 class ClusterHead(peerBase.commonNode):
@@ -79,19 +91,18 @@ class ClusterHead(peerBase.commonNode):
         self.CMs = collections.deque()
 
         self.rebroadcaster = utils.job(self.broadcastIntro,consts.BROADCAST_FREQ) #responsible for periodically calling broadcastIntro
-    
+        self.KUIclean = utils.job(self.clearCMs, consts.KUI_INTERVAL)
         super().hold()
         self.rebroadcaster.start()
+        self.KUIclean.start()
         
         # print("CH serving")
 
     # Adds a new CM to the list of CM's the CH knows exists if it isn't already on the list
     # TODO clean out the list every once in a while
     def newCM(self, ip,port,pubKey):
-        # print("trying to add new CM")
-        if not self.checkCM(pubKey)[0]:
-            # print("actually adding new cm")
-            self.CMs.append(ClusterMemberRep(ip,port,pubKey))
+        print("trying to add new CM")
+        self.CMs.append(ClusterMemberRep(ip,port,pubKey))
 
     def checkCM(self,pubKey):
         for d in self.CMs:
@@ -99,9 +110,22 @@ class ClusterHead(peerBase.commonNode):
                 return True, d
         return False, None
 
+    # helper function to clear out old CMs
+    def clearCMs(self):
+        print("clear")
+        now = time.clock()
+        newCMs = []
+        self.lock.acquire()
+        for d in self.CMs:
+            if (now - d.start) < 2*consts.KUI_INTERVAL:
+                newCMs.append(d)
+        self.CMs = newCMs
+        print(len(self.CMs))
+        self.lock.release()
+
     # helper function -- should be called periodically
     def broadcastIntro(self):
-        # print("CH sending broadcast...")
+        print("CH sending broadcast...")
         super().broadcast(packers.IntroMsg(consts.TYPE_CH,self.IP,self.SSERVPORT,self.pubKey).genMsg())
 
     def sendTransaction(self, pubKey, sig):

@@ -100,7 +100,7 @@ class TransMsg:
     # If not given a bytes object with TransMsg.fmt's formatting, returns TypeError
     @staticmethod
     def ungenMsg(data):
-        print(len(data))
+        # print(len(data))
         # opened = TransMsg.fmt.unpack(data)
         try:
             opened = TransMsg.fmt.unpack(data)
@@ -241,9 +241,8 @@ class KUIMsg:
     fmt = struct.Struct(consts.MSG_KUI_FMT) # the specific format of how we plan on serialising our struct
     
     msgType = consts.MSG_KUI
-    def __init__(self, nodeType, signature,keyOld, keyNew):
+    def __init__(self, nodeType,keyOld, keyNew):
         self.nodeType = nodeType
-        self.signature = signature
         self.keyOld = keyOld # this should be a public key
         self.keyNew = keyNew
 
@@ -252,7 +251,6 @@ class KUIMsg:
         values = (
             self.msgType,
             self.nodeType,
-            self.signature,
             cryptostuff.keyToBytes(self.keyOld),
             cryptostuff.keyToBytes(self.keyNew)
         )

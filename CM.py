@@ -1,4 +1,4 @@
-from common import cryptostuff,packers,peerBase,consts,handlers,msgEvent 
+from common import cryptostuff,packers,peerBase,consts,handlers,msgEvent,utils 
 import socketserver, socket,_thread
 from threading import Thread
 
@@ -42,7 +42,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
         # print("~?~?~?~?~?~?~?~~?~?~??~?~?~?~~??~?~?~?~?~~??~~?~?~?")
         for unpack in [packers.TransMsg.ungenMsg(self.data),packers.VerifyMsg.ungenMsg(self.data)]:
             unpacked = unpack # should only recieve TransMsg 
-            print(unpacked)
+            # print(unpacked)
             if unpacked != None: # we have recieved a msg
                 rootNode = self.server.CM
                 if unpacked.msgType == consts.MSG_TRANS and unpacked.nodeType == consts.TYPE_CH and unpacked.key.public_numbers().n == rootNode.CH.pubKey.public_numbers().n: #sanity check -- might need code for more than IntroMsg and we only care about IntroMsg from CHs...who should be the only ones sending them
@@ -86,7 +86,7 @@ class ClusterHeadRep():
 
 class ClusterMember(peerBase.commonNode):
 
-        def __init__(self,*args,**kwargs):
+        def __init__(self,*args,hasKUI=False,**kwargs):
             super().__init__(*args,**kwargs) #do standard commonNode stuff
             
             self.lock = _thread.allocate_lock() # for modifications to self.CH and self.privateKey
@@ -97,8 +97,12 @@ class ClusterMember(peerBase.commonNode):
             self.CH = ClusterHeadRep()
             self.holdMsgs = msgEvent.MsgEvent()
             self.hasDownload = False
+            self.hasKUI = hasKUI
+            
             super().hold()
-            print("CM is up")
+            self.KUI = utils.job(self.KUICH, consts.KUI_INTERVAL)
+            self.KUI.start()
+            # print("CM is up")
 
 
         def addDownloadFunc(self, downloadFunc):
@@ -111,13 +115,25 @@ class ClusterMember(peerBase.commonNode):
         # sending an ack is very simple -- assumption is that acks always go to a CH
         def ackCH(self,ackType):
             if self.CH.exists:
-                # print("sending ACK to port: " + str(self.CH.port) + " and ip: "+ self.CH.IP)
+                print("sending ACK to port: " + str(self.CH.port) + " and ip: "+ self.CH.IP)
                 msg = packers.AckMsg(consts.TYPE_CM,self.IP,self.SSERVPORT,ackType,self.pubKey).genMsg()
                 self.sendCH(msg)
             else:
                 raise CHDoesNotExist("This CM is not connected to a CH and cannot execute this function as a result")
             
-        
+        def KUICH(self):
+            print("ping")
+            if not self.CH.exists:
+                print("not ready")
+                return
+            oldPub = self.pubKey
+            if self.hasKUI:
+                self.privateKey = cryptostuff.newPrivateKey()
+                self.pubKey = self.privateKey.public_key() 
+                print("kui changed")
+            msg = packers.KUIMsg(consts.TYPE_CM,oldPub,self.pubKey).genMsg()
+            self.sendCH(msg)
+            print("sent kui")
 
         # Sends the signature of the message off to the CH to be appended to the blockchain
         # The handler is executed when the TRANS_MSG is recieved back at the CM
@@ -141,7 +157,7 @@ class ClusterMember(peerBase.commonNode):
             if self.CH.exists:
                 self.holdMsgs[sig] = handler
                 # print("checking signature is in blockchain")
-                print(len(packers.VerifyMsg(consts.TYPE_CM,sig,pubKey,self.pubKey,False).genMsg()))
+                # print(len(packers.VerifyMsg(consts.TYPE_CM,sig,pubKey,self.pubKey,False).genMsg()))
                 self.sendCH(packers.VerifyMsg(consts.TYPE_CM,sig,pubKey,self.pubKey,False).genMsg())
             else:
                 raise CHDoesNotExist("This CM is not connected to a CH and cannot execute this function as a result")

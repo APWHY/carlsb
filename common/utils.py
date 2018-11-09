@@ -20,8 +20,9 @@ class job():
     # responsible for the actual act of repeating -- should never be explicitly called
     def rerun(self):
         while self.running:
-            self.target()
             time.sleep(self.delay)
+            self.target()
+
 
     # idk why you'd ever want to pause a job but there you have it
     def pause(self):

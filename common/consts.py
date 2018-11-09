@@ -11,7 +11,7 @@ BROADCAST_FREQ = 2
 
 # How often we want CM's to change their public and private keys (in seconds)
 # Not currently used TODO
-KUI_INTERVAL = 300
+KUI_INTERVAL = 5
 
 
 RSA_EXPONENT = 65537

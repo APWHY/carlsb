@@ -1,8 +1,5 @@
 # carlsb
 
-need to fill this in with useful stuff later 
-
-
 
 The project is broken into three parts: the blockchain, the carlsb networking code, and the contract wrapper that connects the two together
 
